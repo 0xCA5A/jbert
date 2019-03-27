@@ -1,9 +1,10 @@
+import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
 import org.bff.javampd.server.ServerStatus;
 
 import java.util.logging.Logger;
 
-public class MpdCommunicator {
+class MpdCommunicator {
     private static final Logger logger = Logger.getLogger(MpdCommunicator.class.getName());
 
     private final String server;
@@ -13,32 +14,38 @@ public class MpdCommunicator {
     MpdCommunicator(String server, int port) {
         this.server = server;
         this.port = port;
-
         this.mpd = new MPD.Builder()
                 .server(this.server)
                 .port(this.port)
                 .build();
     }
 
-    public void configure() {
+    void configure() {
         logger.info(String.format("Configure MPD communicator [%s:%d]", server, port));
+        if (!mpd.isConnected()) {
+            throw new RuntimeException(String.format("Can not establish connection to MPD server @%s:%d", server, port));
+        }
     }
 
-    public void getStatus() {
-        ServerStatus status = mpd.getServerStatus();
-        logger.info(String.format("MPD status::getElapsedTime: %s", status.getElapsedTime()));
-        logger.info(String.format("MPD status::getAudio: %s", status.getAudio()));
-        logger.info(String.format("MPD status::getState: %s", status.getState()));
-        logger.info(String.format("MPD status::getStatus: %s", status.getStatus()));
-        logger.info(String.format("MPD status::getVolume: %s", status.getVolume()));
-        logger.info(String.format("MPD status::isRepeat: %s", status.isRepeat()));
-        logger.info(String.format("MPD status::isRandom: %s", status.isRandom()));
+    void play() {
+        mpd.getPlayer().play();
     }
 
-    public static void main(String... args) {
-        MpdCommunicator m = new MpdCommunicator("10.0.50.120", 6600);
-        m.configure();
-        m.getStatus();
+    void pause() {
+        mpd.getPlayer().pause();
+    }
 
+    void increaseVolume() {
+        Player player = mpd.getPlayer();
+        int newVolumeValue = player.getVolume() + 10;
+        logger.info(String.format("Increased volume: %d%%", newVolumeValue));
+        player.setVolume(newVolumeValue);
+    }
+
+    void decreaseVolume() {
+        Player player = mpd.getPlayer();
+        int newVolumeValue = player.getVolume() - 10;
+        logger.info(String.format("Decreased volume: %d%%", newVolumeValue));
+        player.setVolume(newVolumeValue);
     }
 }

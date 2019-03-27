@@ -3,41 +3,29 @@ import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinPullResistance;
-import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 import java.util.logging.Logger;
 
-public class GpiListener implements AutoCloseable {
+
+class GpiListener implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(GpiListener.class.getName());
+    private final GpioController gpioController = GpioFactory.getInstance();
+    private final Pin pin;
 
-    // Create GPIO controller
-    final GpioController gpio = GpioFactory.getInstance();
+    GpiListener(Pin pin) {
+        this.pin = pin;
+    }
 
-    private GpioPinDigitalInput button;
-
-    GpiListener() {
+    void configure(GpioPinListenerDigital listener) {
+        logger.info(String.format("Configure pin '%s' and registering listener", pin));
+        GpioPinDigitalInput digitalInput = gpioController.provisionDigitalInputPin(pin, PinPullResistance.PULL_DOWN);
+        digitalInput.setShutdownOptions(true);
+        digitalInput.addListener(listener);
     }
 
     @Override
     public void close() {
-        gpio.shutdown();
+        gpioController.shutdown();
     }
-
-    public void configure(Pin pin, GpioPinListenerDigital listener) {
-        logger.info(String.format("Configure pin '%s' and registering listener '%s'", pin, listener));
-
-        // Provision GPIO pin 02 as an input pin with its internal pull down resistor enabled
-        button = gpio.provisionDigitalInputPin(RaspiPin.GPIO_02, PinPullResistance.PULL_DOWN);
-        // Set shutdown state for this input pin
-        button.setShutdownOptions(true);
-
-        // Create and register GPIO pin listener
-        button.addListener(listener);
-    }
-
-    public void shutdown() {
-        gpio.shutdown();
-    }
-
 }
