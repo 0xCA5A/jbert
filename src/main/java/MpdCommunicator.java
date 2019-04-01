@@ -1,11 +1,11 @@
 import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
-import org.bff.javampd.server.ServerStatus;
 
 import java.util.logging.Logger;
 
+
 class MpdCommunicator {
-    private static final Logger logger = Logger.getLogger(MpdCommunicator.class.getName());
+    private static final Logger logger = LogHelper.getLogger(MpdCommunicator.class.getName());
 
     private final String server;
     private final int port;
