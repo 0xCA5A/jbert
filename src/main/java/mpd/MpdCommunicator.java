@@ -4,6 +4,7 @@ import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
 import util.LogHelper;
 
+import java.time.Duration;
 import java.util.logging.Logger;
 
 
@@ -13,6 +14,9 @@ public class MpdCommunicator {
     private final String server;
     private final int port;
     private final MPD mpd;
+
+    private final boolean playerRepeat = true;
+    private final Duration crossfadeDuration = Duration.ofSeconds(3);
 
     public MpdCommunicator(String server, int port) {
         this.server = server;
@@ -31,6 +35,25 @@ public class MpdCommunicator {
 
         logger.config("Enable repeat playing");
         mpd.getPlayer().setRepeat(true);
+        mpd.getPlayer().setXFade((int) crossfadeDuration.getSeconds());
+    }
+
+    public void loadPlaylist(String playlist) {
+        logger.info(String.format("Loading playlist '%s'", playlist));
+        mpd.getPlaylist().clearPlaylist();
+        sleep(300);
+        mpd.getPlaylist().loadPlaylist(playlist);
+        sleep(300);
+        mpd.getPlayer().play();
+        sleep(300);
+    }
+
+    private void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void play() {

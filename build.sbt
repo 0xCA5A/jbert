@@ -2,6 +2,8 @@ name := "jbert"
 
 version := "0.1"
 
+maintainer := "samuelcasa42@gmail.com"
+
 scalaVersion := "2.12.8"
 
 

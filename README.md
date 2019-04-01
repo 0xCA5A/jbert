@@ -7,6 +7,7 @@ expensive and not flexible enough.
 ### Hardware
  * Raspberry Pi Zero
  * Waveshare WM8960 Hallo-fi Sound Karte HUT für Raspberry Pi
+ * MFRC522 RFID Reader
 
 ### Software
  * Raspbian Lite: https://www.raspberrypi.org/downloads/raspbian/

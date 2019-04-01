@@ -5,12 +5,6 @@ import com.pi4j.wiringpi.Spi;
 
 
 public class RaspRC522 {
-    private int NRSTPD = 22;        //RST Pin number,default 22
-    private int Speed = 500000;
-    private int SPI_Channel = 0;
-
-    private final int MAX_LEN = 16; //扇区字节数
-
     //RC522命令字
     public static final byte PCD_IDLE = 0x00;
     public static final byte PCD_AUTHENT = 0x0E;
@@ -19,7 +13,6 @@ public class RaspRC522 {
     public static final byte PCD_TRANSCEIVE = 0x0C;
     public static final byte PCD_RESETPHASE = 0x0F;
     public static final byte PCD_CALCCRC = 0x03;
-
     //PICC命令字
     public static final byte PICC_REQIDL = 0x26;
     public static final byte PICC_REQALL = 0x52;
@@ -34,12 +27,10 @@ public class RaspRC522 {
     public static final byte PICC_RESTORE = (byte) 0xC2;
     public static final byte PICC_TRANSFER = (byte) 0xB0;
     public static final byte PICC_HALT = 0x50;
-
     //返回状态
     public static final int MI_OK = 0;
     public static final int MI_NOTAGERR = 1;
     public static final int MI_ERR = 2;
-
     //RC522寄存器地址
     public static final byte Reserved00 = 0x00;
     public static final byte CommandReg = 0x01;
@@ -57,7 +48,6 @@ public class RaspRC522 {
     public static final byte BitFramingReg = 0x0D;
     public static final byte CollReg = 0x0E;
     public static final byte Reserved01 = 0x0F;
-
     public static final byte Reserved10 = 0x10;
     public static final byte ModeReg = 0x11;
     public static final byte TxModeReg = 0x12;
@@ -74,7 +64,6 @@ public class RaspRC522 {
     public static final byte Reserved13 = 0x1D;
     public static final byte Reserved14 = 0x1E;
     public static final byte SerialSpeedReg = 0x1F;
-
     public static final byte Reserved20 = 0x20;
     public static final byte CRCResultRegM = 0x21;
     public static final byte CRCResultRegL = 0x22;
@@ -91,7 +80,6 @@ public class RaspRC522 {
     public static final byte TReloadRegL = 0x2D;
     public static final byte TCounterValueRegH = 0x2E;
     public static final byte TCounterValueRegL = 0x2F;
-
     public static final byte Reserved30 = 0x30;
     public static final byte TestSel1Reg = 0x31;
     public static final byte TestSel2Reg = 0x32;
@@ -108,6 +96,10 @@ public class RaspRC522 {
     public static final byte Reserved32 = 0x3D;
     public static final byte Reserved33 = 0x3E;
     public static final byte Reserved34 = 0x3F;
+    private final int MAX_LEN = 16; //扇区字节数
+    private int NRSTPD = 22;        //RST Pin number,default 22
+    private int Speed = 500000;
+    private int SPI_Channel = 0;
 
 
     public RaspRC522(int Speed, int PinReset) {

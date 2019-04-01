@@ -10,8 +10,8 @@ import java.time.Instant;
 import java.util.logging.Logger;
 
 
-abstract class DebouncedGpiAction implements GpioPinListenerDigital {
-    private static final Logger logger = LogHelper.getLogger(PlayPauseAction.class.getName());
+public abstract class DebouncedGpiAction implements GpioPinListenerDigital {
+    private static final Logger logger = LogHelper.getLogger(DebouncedGpiAction.class.getName());
 
     private final Duration MIN_EVENT_INTERVAL = Duration.ofMillis(300);
     private final PinEdge eventTriggerEdge;
