@@ -1,17 +1,20 @@
+package mpd;
+
 import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
+import util.LogHelper;
 
 import java.util.logging.Logger;
 
 
-class MpdCommunicator {
+public class MpdCommunicator {
     private static final Logger logger = LogHelper.getLogger(MpdCommunicator.class.getName());
 
     private final String server;
     private final int port;
     private final MPD mpd;
 
-    MpdCommunicator(String server, int port) {
+    public MpdCommunicator(String server, int port) {
         this.server = server;
         this.port = port;
         this.mpd = new MPD.Builder()
@@ -20,29 +23,29 @@ class MpdCommunicator {
                 .build();
     }
 
-    void configure() {
+    public void configure() {
         logger.info(String.format("Configure MPD communicator [%s:%d]", server, port));
         if (!mpd.isConnected()) {
             throw new RuntimeException(String.format("Can not establish connection to MPD server @%s:%d", server, port));
         }
     }
 
-    void play() {
+    public void play() {
         mpd.getPlayer().play();
     }
 
-    void pause() {
+    public void pause() {
         mpd.getPlayer().pause();
     }
 
-    void increaseVolume() {
+    public void increaseVolume() {
         Player player = mpd.getPlayer();
         int newVolumeValue = player.getVolume() + 10;
         logger.info(String.format("Increased volume: %d%%", newVolumeValue));
         player.setVolume(newVolumeValue);
     }
 
-    void decreaseVolume() {
+    public void decreaseVolume() {
         Player player = mpd.getPlayer();
         int newVolumeValue = player.getVolume() - 10;
         logger.info(String.format("Decreased volume: %d%%", newVolumeValue));

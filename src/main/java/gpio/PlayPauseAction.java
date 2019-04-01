@@ -1,12 +1,15 @@
+package gpio;
+
 import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
+import mpd.MpdCommunicator;
 
 
-class PlayPauseAction extends DebouncedGpiAction {
+public class PlayPauseAction extends DebouncedGpiAction {
     private final MpdCommunicator mpdCommunicator;
     private boolean playbackActive;
 
-    PlayPauseAction(PinEdge edge, MpdCommunicator mpdCommunicator) {
+    public PlayPauseAction(PinEdge edge, MpdCommunicator mpdCommunicator) {
         super(edge);
         this.mpdCommunicator = mpdCommunicator;
         playbackActive = false;

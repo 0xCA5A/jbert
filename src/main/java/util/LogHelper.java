@@ -1,10 +1,12 @@
+package util;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 
-final class LogHelper {
+public final class LogHelper {
     private static final String loggingProps = "logging.properties";
 
     private LogHelper() {
@@ -19,7 +21,7 @@ final class LogHelper {
         }
     }
 
-    static Logger getLogger(String name) {
+    public static Logger getLogger(String name) {
         return Logger.getLogger(name);
     }
 }
