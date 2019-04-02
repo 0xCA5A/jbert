@@ -9,9 +9,6 @@ import java.util.logging.Logger;
 public final class LogHelper {
     private static final String loggingProps = "logging.properties";
 
-    private LogHelper() {
-    }
-
     static {
         InputStream stream = LogHelper.class.getClassLoader().getResourceAsStream(loggingProps);
         try {
@@ -19,6 +16,9 @@ public final class LogHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private LogHelper() {
     }
 
     public static Logger getLogger(String name) {

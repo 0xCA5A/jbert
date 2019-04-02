@@ -2,19 +2,19 @@ package gpio;
 
 import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
-import mpd.MpdCommunicator;
+import util.MpcWrapper;
 
 
 public class VolumeDownAction extends DebouncedGpiAction {
-    private final MpdCommunicator mpdCommunicator;
+    private final MpcWrapper mpcWrapper;
 
-    public VolumeDownAction(PinEdge edge, MpdCommunicator mpdCommunicator) {
+    public VolumeDownAction(PinEdge edge, MpcWrapper mpcWrapper) {
         super(edge);
-        this.mpdCommunicator = mpdCommunicator;
+        this.mpcWrapper = mpcWrapper;
     }
 
     @Override
     public void gpiEventAction(GpioPinDigitalStateChangeEvent event) {
-        mpdCommunicator.decreaseVolume();
+        mpcWrapper.volumeDown(4);
     }
 }

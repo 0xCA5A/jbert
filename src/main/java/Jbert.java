@@ -6,6 +6,7 @@ import gpio.VolumeDownAction;
 import gpio.VolumeUpAction;
 import mpd.MpdCommunicator;
 import util.LogHelper;
+import util.MpcWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +17,12 @@ class Jbert {
     private static final Logger logger = LogHelper.getLogger(Jbert.class.getName());
 
     private final MpdCommunicator mpdCommunicator;
+    private final MpcWrapper mpcWrapper;
     private List<GpiListener> gpiListeners;
 
     private Jbert(String server, int port) {
         mpdCommunicator = new MpdCommunicator(server, port);
+        mpcWrapper = new MpcWrapper(server, port);
     }
 
     private void start() throws InterruptedException {
@@ -39,11 +42,11 @@ class Jbert {
         gpiListenerList.add(playPauseGpiListener);
 
         GpiListener volumeUpGpiListener = new GpiListener(RaspiPin.GPIO_04);
-        volumeUpGpiListener.registerAction(new VolumeUpAction(PinEdge.RISING, mpdCommunicator));
+        volumeUpGpiListener.registerAction(new VolumeUpAction(PinEdge.RISING, mpcWrapper));
         gpiListenerList.add(volumeUpGpiListener);
 
         GpiListener volumeDownGpiListener = new GpiListener(RaspiPin.GPIO_05);
-        volumeDownGpiListener.registerAction(new VolumeDownAction(PinEdge.RISING, mpdCommunicator));
+        volumeDownGpiListener.registerAction(new VolumeDownAction(PinEdge.RISING, mpcWrapper));
         gpiListenerList.add(volumeDownGpiListener);
 
         return gpiListenerList;
