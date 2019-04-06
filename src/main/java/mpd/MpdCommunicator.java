@@ -28,6 +28,9 @@ public class MpdCommunicator {
         if (!mpd.isConnected()) {
             throw new RuntimeException(String.format("Can not establish connection to MPD server @%s:%d", server, port));
         }
+
+        logger.config("Enable repeat playing");
+        mpd.getPlayer().setRepeat(true);
     }
 
     public void play() {
@@ -36,6 +39,16 @@ public class MpdCommunicator {
 
     public void pause() {
         mpd.getPlayer().pause();
+    }
+
+    public void playNext() {
+        mpd.getPlayer().playNext();
+        logger.info(String.format("Next track in playlist selected, playing: %s", mpd.getPlayer().getCurrentSong()));
+    }
+
+    public void playPrevious() {
+        mpd.getPlayer().playPrevious();
+        logger.info(String.format("Previous track in playlist selected, playing: %s", mpd.getPlayer().getCurrentSong()));
     }
 
     public void increaseVolume() {

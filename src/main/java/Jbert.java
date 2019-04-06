@@ -1,7 +1,9 @@
 import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.RaspiPin;
 import gpio.GpiListener;
+import gpio.PlayNextTrackAction;
 import gpio.PlayPauseAction;
+import gpio.PlayPreviousTrackAction;
 import gpio.VolumeDownAction;
 import gpio.VolumeUpAction;
 import mpd.MpdCommunicator;
@@ -37,17 +39,25 @@ class Jbert {
     private List<GpiListener> configureGpiListener() {
         List<GpiListener> gpiListenerList = new ArrayList<>();
 
-        GpiListener playPauseGpiListener = new GpiListener(RaspiPin.GPIO_03);
+        GpiListener playPauseGpiListener = new GpiListener(RaspiPin.GPIO_21);
         playPauseGpiListener.registerAction(new PlayPauseAction(PinEdge.RISING, mpdCommunicator));
         gpiListenerList.add(playPauseGpiListener);
 
-        GpiListener volumeUpGpiListener = new GpiListener(RaspiPin.GPIO_04);
+        GpiListener volumeUpGpiListener = new GpiListener(RaspiPin.GPIO_03);
         volumeUpGpiListener.registerAction(new VolumeUpAction(PinEdge.RISING, mpcWrapper));
         gpiListenerList.add(volumeUpGpiListener);
 
         GpiListener volumeDownGpiListener = new GpiListener(RaspiPin.GPIO_05);
         volumeDownGpiListener.registerAction(new VolumeDownAction(PinEdge.RISING, mpcWrapper));
         gpiListenerList.add(volumeDownGpiListener);
+
+        GpiListener playNextTrackGpiListener = new GpiListener(RaspiPin.GPIO_04);
+        playNextTrackGpiListener.registerAction(new PlayNextTrackAction(PinEdge.RISING, mpdCommunicator));
+        gpiListenerList.add(playNextTrackGpiListener);
+
+        GpiListener playPreviousTrackGpiListener = new GpiListener(RaspiPin.GPIO_27);
+        playPreviousTrackGpiListener.registerAction(new PlayPreviousTrackAction(PinEdge.RISING, mpdCommunicator));
+        gpiListenerList.add(playPreviousTrackGpiListener);
 
         return gpiListenerList;
     }
