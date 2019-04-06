@@ -1,4 +1,4 @@
-package com.chimpim.rc522.api;
+package rfid.rc522.api;
 
 import com.pi4j.wiringpi.Gpio;
 import com.pi4j.wiringpi.Spi;

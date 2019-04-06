@@ -1,4 +1,4 @@
-package com.chimpim.rc522.api;
+package rfid.rc522.api;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
