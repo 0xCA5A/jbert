@@ -1,3 +1,4 @@
+import buildinfo.BuildInfo;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.RaspiPin;
@@ -44,8 +45,22 @@ class Jbert {
         jbert.start();
     }
 
+    private void printBuildInfo() {
+        String version = String.format("%s-%s @ %s",
+                BuildInfo.name(),
+                BuildInfo.version(),
+                BuildInfo.gitHeadCommit()
+                        .map(headCommit -> headCommit.substring(0, 8))
+                        .getOrElse(() -> "none"));
+        if (BuildInfo.gitUncommittedChanges()) {
+            version += "~dirty";
+        }
+        logger.info("Build info: " + version);
+    }
+
     private void start() throws InterruptedException {
         logger.info("Starting main jbert application...");
+        printBuildInfo();
 
         mpdCommunicator.configure();
 
