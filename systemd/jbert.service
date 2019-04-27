@@ -1,8 +1,0 @@
-[Unit]
-Description=jbert service
-
-[Service]
-ExecStart=/home/pi/jbert/bin/jbert
-
-[Install]
-WantedBy=multi-user.target

@@ -1,0 +1,47 @@
+---
+- hosts: "{{ variable_hosts | default('jberts') }}"
+  become: true
+
+
+  pre_tasks:
+    - name: Creates a temporary directory
+      file:
+        path: '{{ jbert_tmp_dir }}'
+        state: directory
+
+
+  tasks:
+    - name: Copy jbert deb to the temporary directory
+      copy:
+        src: '{{ local_jbert_deb_package }}'
+        dest: '{{ jbert_tmp_dir }}/{{ local_jbert_deb_package }}'
+
+    - name: Remove application package
+      apt:
+        name: '{{ jbert_application_name }}'
+        state: absent
+
+    - name: Install application package
+      apt:
+        deb: '{{ jbert_tmp_dir }}/{{ local_jbert_deb_package }}'
+        state: present
+
+    - name: Change jbert application file permissions
+      file:
+        path: '{{ jbert_application_root }}'
+        owner: '{{ jbert_application_user}}'
+        recurse: yes
+
+    - name: Reload application
+      systemd:
+        name: '{{ jbert_application_name }}'
+        enabled: yes
+        state: reloaded
+        ignore_errors: yes
+
+
+  post_tasks:
+    - name: Remove temporary directory
+      file:
+        path: '{{ jbert_tmp_dir }}'
+        state: absent

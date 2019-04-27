@@ -1,11 +1,11 @@
 import com.github.eikek.sbt.openapi._
 import com.typesafe.sbt.SbtGit.GitKeys._
 
-name := "jbert"
 
+val projectName = "jbert"
+
+name := projectName
 version := "0.1"
-
-maintainer := "samuelcasa42@gmail.com"
 
 scalaVersion := "2.12.8"
 
@@ -33,9 +33,20 @@ lazy val core = (project in file("core")).
   )
 
 lazy val application = (project in file("application")).
+  enablePlugins(PlayMinimalJava).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DebianDeployPlugin).
-  enablePlugins(PlayMinimalJava).
+  enablePlugins(SystemdPlugin).
   settings(
+    packageName := projectName,
+    packageSummary := "jbert control application",
+    packageDescription := """jbert - Audio playback tool for kids""",
+    maintainer := "samuelcasa42@gmail.com",
+    debianPackageDependencies := Seq("openjdk-8-jre-headless"),
+    javaOptions in Universal ++= Seq(
+      // JVM memory tuning
+      "-J-Xmx256m",
+      "-J-Xms128m",
+    ),
     libraryDependencies += guice
   ).dependsOn(core)

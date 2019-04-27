@@ -1,62 +1,42 @@
 #!/bin/bash
 
-APP_ARCHIVE=
-PROJECT_NAME="jbert"
-TARGET_DIR="/home/pi"
+APP_DEB_PACKAGE=
 TARGET_HOST=
-TARGET_USER="pi"
+REMOTE_USER=pi
 
 
 if [[ $# -ne 2 ]]; then
-    echo "[!] Define a target host and the path to the application tgz archive"
+    echo "[!] Define a target host and the path to the Debian application package"
     exit 1;
 fi
 TARGET_HOST=$1
-APP_ARCHIVE=$2
+APP_DEB_PACKAGE=$2
 
 
-echo -e "[i] Build tarball"
-sbt clean universal:packageZipTarball
-
-if [[ $? -ne 0 ]]; then
-    echo "[!] Failed compiling / building tarball, exit here"
+if [[ ! -f ${APP_DEB_PACKAGE} ]]; then
+    echo "[!] Debian installation package '${APP_DEB_PACKAGE}' not found"
     exit 1;
 fi
-
-if [[ ! -f ${APP_ARCHIVE} ]]; then
-    echo "[!] Application tgz archive '${APP_ARCHIVE}' not found"
-    exit 1;
-fi
+APP_DEB_PACKAGE_NAME=$(basename "${APP_DEB_PACKAGE}")
 
 
-echo -e "[i] Remove old application data on target"
-ssh "${TARGET_USER}@${TARGET_HOST}" "sudo rm -vrf ${TARGET_DIR}/${PROJECT_NAME}*"
+echo -e "[i] Symlink Debian installation package to ansible directory"
+ln -fvs "$(pwd)/${APP_DEB_PACKAGE}" ansible
 
+echo -e "[i] Create a Ansible hosts file"
+echo -e "[jberts]\n${TARGET_HOST}" > ansible/hosts
+cat ansible/hosts
 
-echo -e "[i] Copy application package"
-scp "${APP_ARCHIVE}" "${TARGET_USER}@${TARGET_HOST}:${TARGET_DIR}"
+echo -e "[i] Run Ansible playbook"
+cd ansible
+time ansible-playbook site.yml -i hosts -u ${REMOTE_USER} -e "local_jbert_deb_package=${APP_DEB_PACKAGE_NAME}"
+cd -
 
+echo -e "[i] Remove generated ansible hosts file"
+rm -v ansible/hosts
 
-echo -e "[i] Extract application package"
-ssh "${TARGET_USER}@${TARGET_HOST}" "tar -vxf ${TARGET_DIR}/*.tgz -C ${TARGET_DIR}"
-
-
-echo -e "[i] Create symlink"
-ssh "${TARGET_USER}@${TARGET_HOST}" "find ${TARGET_DIR} -type d -name \"${PROJECT_NAME}*\" -exec ln -s {} ${TARGET_DIR}/${PROJECT_NAME} ';' "
-
-
-echo -e "[i] Copy systemd service file"
-scp systemd/${PROJECT_NAME}.service ${TARGET_USER}@${TARGET_HOST}:/tmp
-ssh "${TARGET_USER}@${TARGET_HOST}" "sudo mv /tmp/${PROJECT_NAME}.service* /etc/systemd/system"
-
-
-echo -e "[i] Refresh systemd config"
-ssh "${TARGET_USER}@${TARGET_HOST}" "sudo systemctl enable ${PROJECT_NAME}"
-ssh "${TARGET_USER}@${TARGET_HOST}" "sudo systemctl daemon-reload"
-
-
-echo -e "[i] Restart the jbert application"
-ssh "${TARGET_USER}@${TARGET_HOST}" "sudo systemctl restart ${PROJECT_NAME}"
+echo -e "[i] Remove symlink to Debian installation package in ansible directory"
+rm -v "ansible/${APP_DEB_PACKAGE_NAME}"
 
 
 echo -e "[i] Done"
