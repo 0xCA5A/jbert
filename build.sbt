@@ -47,6 +47,11 @@ lazy val application = (project in file("application")).
       // JVM memory tuning
       "-J-Xmx256m",
       "-J-Xms128m",
+      // JMX monitoring
+      "-Dcom.sun.management.jmxremote",
+      "-Dcom.sun.management.jmxremote.ssl=false",
+      "-Dcom.sun.management.jmxremote.authenticate=false",
+      "-Dcom.sun.management.jmxremote.port=1077"
     ),
     libraryDependencies += guice
   ).dependsOn(core)

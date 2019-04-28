@@ -47,9 +47,9 @@ what is going on on the target JVM.
  * JMX enabled in the javaOptions defined in `build.sbt`
  * SOCKS tunnel to the target opened:
 ```
-sam@guido:~$ ssh -v -D 9696 my_server.example.com
+sam@guido:~$ ssh -v -D 9696 pi@_jbert_ip_address_
 ```
- * VisualVM configured to use the proxy
- * Connection to the target opened
+ * VisualVM configured to use the SOCKS proxy
+ * Connection to the target port opened (build.sbt, jmxremote.port)
 
 Source: https://dzone.com/articles/visualvm-monitoring-remote-jvm
