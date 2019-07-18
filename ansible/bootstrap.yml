@@ -1,0 +1,147 @@
+---
+- hosts: "{{ variable_hosts | default('jberts') }}"
+  become: true
+  vars:
+    staging_dir: '/home/pi/stage/'
+    project_name: 'jbert'
+
+
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+
+    # Manage software packages
+    - name: Install software packages
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - mpd
+          - mpc
+          - openjdk-8-jdk-headless
+          - wiringpi
+
+          - git
+          - raspberrypi-kernel-headers
+          - raspberrypi-kernel
+          - dkms
+          - i2c-tools
+          - libasound2-plugins
+
+
+    # Install WM8960-Audio-HAT driver
+    - name: Clone WM8960-Audio-HAT driver source
+      git:
+        repo: 'https://github.com/waveshare/WM8960-Audio-HAT'
+        dest: '{{ staging_dir }}/WM8960-Audio-HAT'
+        version: 44180c8c8cd2329acccc3dc0aba5853125e5a7c1
+
+    - name: Install WM8960-Audio-HAT driver
+      command: ./install.sh
+      args:
+        chdir: /home/pi/stage/WM8960-Audio-HAT
+
+
+    # Disable hardware drivers
+    - name: Disable BCM2835 audio driver modules
+      copy:
+        dest: /etc/modprobe.d/blacklist-audio.conf
+        content:  |
+          blacklist snd_usb_audio
+          blacklist snd_bcm2835
+
+    - name: Disable bluetooth driver modules
+      copy:
+        dest: /etc/modprobe.d/bluetooth-audio.conf
+        content:  |
+          blacklist btbcm
+          blacklist bnep
+          blacklist hci_uart
+          blacklist bluetooth
+
+    - name: Disable network driver modules
+      copy:
+        dest: /etc/modprobe.d/network-audio.conf
+        content:  |
+          blacklist 8021q
+          blacklist garp
+          blacklist stp
+          blacklist llc
+
+    - name: Disable video drivers
+      copy:
+        dest: /etc/modprobe.d/blacklist-video.conf
+        content:  |
+          blacklist bcm2835_v4l2
+          blacklist bcm2835_codec
+          blacklist vc_sm_cma
+
+
+    # Modifications in /boot/config.txt
+    - name: Configure minimal GPU memory in boot config
+      lineinfile:
+        path: /boot/config.txt
+        line: gpu_mem=16
+
+    - name: Ensure SPI is enabled in boot config
+      lineinfile:
+        path: /boot/config.txt
+        line: dtparam=spi=on
+
+    - name: Ensure spi-bcm2708 is selected in boot config
+      lineinfile:
+        path: /boot/config.txt
+        line: dtoverlay=spi-bcm2708
+
+
+    # MPD config
+    - name: Configure the mixer control in MPD config
+      lineinfile:
+        path: /etc/mpd.conf
+        insertafter: '^.*My ALSA Device'
+        line: '        mixer_control	"Speaker"	# optional'
+
+
+    # User related modifications
+    - name: Add the user 'jbert', appending the groups 'spi' and 'gpio' to the user's groups
+      user:
+        name: jbert
+        groups: spi,gpio,audio
+
+    - name: Grant audio group access to MPD music folder
+      file:
+        path: /var/lib/mpd/music
+        state: directory
+        mode: g+w
+        recurse: yes
+        owner: mpd
+        group: audio
+
+    - name: Grant audio group access to MPD playlists folder
+      file:
+        path: /var/lib/mpd/playlists
+        state: directory
+        mode: g+w
+        recurse: yes
+        owner: mpd
+        group: audio
+
+
+  post_tasks:
+    - name: Remove temporary directory
+      file:
+        path: '{{ staging_dir }}'
+        state: absent
+
+    - name: Remove useless packages from the cache
+      apt:
+        autoclean: yes
+
+    - name: Remove dependencies that are no longer required
+      apt:
+        autoremove: yes
+
+    - name: Reboot the device and wait for it to come back up
+      reboot:
