@@ -77,7 +77,7 @@ public class MpcWrapper {
         logger.info(String.format("Decrease volume to %d%%", getVolumePercent(result.stdOut)));
     }
 
-    public int getVolume() {
+    private int getVolume() {
         String command = mpcVolumeCommandSkeleton;
         SystemCallResult result = new SystemCall().fire(executorService, command);
         throwExceptionOnUnexpectedExitCode(command, result, 0);

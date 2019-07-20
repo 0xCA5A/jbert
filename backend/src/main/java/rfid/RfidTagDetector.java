@@ -27,21 +27,9 @@ public class RfidTagDetector {
         this.rfidTagUid = rfidTagUid;
     }
 
-    private void snooze() {
-        try {
-            Thread.sleep(scanInterval.toMillis());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new GeneralException(e);
-        }
-    }
-
-    public void configure(Duration scanInterval) {
-        this.scanInterval = scanInterval;
-    }
-
-    public void start(ExecutorService executorService) {
+    public void start(ExecutorService executorService, Duration scanInterval) {
         this.executorService = executorService;
+        this.scanInterval = scanInterval;
         executorService.submit(this::findRfidTags);
     }
 
@@ -56,12 +44,21 @@ public class RfidTagDetector {
     private void findRfidTags() {
         while (true) {
             readRfidTagUid().ifPresent(this::notifyListener);
-            snooze();
+            snooze(scanInterval);
         }
     }
 
     public void stop() {
         executorService.shutdown();
+    }
+
+    static void snooze(Duration duration) {
+        try {
+            Thread.sleep(duration.toMillis());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new GeneralException(e);
+        }
     }
 
     private Optional<RfidTagUid> readRfidTagUid() {

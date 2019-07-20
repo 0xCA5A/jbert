@@ -1,7 +1,9 @@
-package rfid;
+package event;
 
 
-import mpd.MpdCommunicator;
+import mpd.MpdService;
+import rfid.RfidTagDetectionListener;
+import rfid.RfidTagUid;
 import util.LogHelper;
 
 import java.util.HashMap;
@@ -26,17 +28,17 @@ public class PlaylistChangeAction extends RfidTagDetectionListener {
         playListMap.put(greenTagUid, greenTagPlaylistName);
     }
 
-    private final MpdCommunicator mpdCommunicator;
+    private final MpdService mpdService;
 
-    public PlaylistChangeAction(MpdCommunicator mpdCommunicator) {
-        this.mpdCommunicator = mpdCommunicator;
+    public PlaylistChangeAction(MpdService mpdService) {
+        this.mpdService = mpdService;
     }
 
     @Override
     public void rfidTagAction(RfidTagUid rfidTagUid) {
         final String key = rfidTagUid.toString();
         if (playListMap.containsKey(key)) {
-            mpdCommunicator.loadPlaylist(playListMap.get(key));
+            mpdService.loadPlaylist(playListMap.get(key));
         } else {
             logger.warning(String.format("No action for unsupported RFID Tag UID '%s'", rfidTagUid.toString()));
         }

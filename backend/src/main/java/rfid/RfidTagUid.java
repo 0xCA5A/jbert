@@ -1,16 +1,40 @@
 package rfid;
 
+import util.GeneralException;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 
 public class RfidTagUid {
+    private static final int RFID_TAG_UID_STRING_LENGTH = 5 * 2 + 4;
+
     private final List<Integer> uid;
 
     public RfidTagUid(byte[] uid) {
         this.uid = uidAsIntegerList(uid);
+    }
+
+    /**
+     * RfidTagUid constructor
+     *
+     * @param uid, expected format "55-68-00-D2-EF"
+     */
+    public RfidTagUid(String uid) {
+        if (uid.length() != RFID_TAG_UID_STRING_LENGTH) {
+            throw new GeneralException(String.format("Got RFID UID with unexpected length: '%s'", uid.length()));
+        }
+        this.uid = uidAsIntegerList(uid);
+    }
+
+    private static List<Integer> uidAsIntegerList(String uid) {
+        final List<String> values = Arrays.asList(uid.split("-"));
+        return values.stream()
+                .map(e -> Integer.valueOf(e, 16))
+                .collect(Collectors.toList());
     }
 
     private static List<Integer> uidAsIntegerList(byte[] uid) {

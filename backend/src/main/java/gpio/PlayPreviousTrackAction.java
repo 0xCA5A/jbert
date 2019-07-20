@@ -2,20 +2,20 @@ package gpio;
 
 import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
-import mpd.MpdCommunicator;
+import mpd.MpdService;
+
 
 public class PlayPreviousTrackAction extends DebouncedGpiAction {
-    private final MpdCommunicator mpdCommunicator;
+    private final MpdService mpdService;
 
-
-    public PlayPreviousTrackAction(PinEdge edge, MpdCommunicator mpdCommunicator) {
-        super(edge);
-        this.mpdCommunicator = mpdCommunicator;
+    public PlayPreviousTrackAction(MpdService mpdService) {
+        super(PinEdge.RISING);
+        this.mpdService = mpdService;
 
     }
 
     @Override
     public void gpiEventAction(GpioPinDigitalStateChangeEvent event) {
-        mpdCommunicator.playPrevious();
+        mpdService.playPrevious();
     }
 }
