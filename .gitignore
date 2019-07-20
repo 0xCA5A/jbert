@@ -1,0 +1,7 @@
+application/target
+backend/target
+project/target
+target
+
+application/logs
+application/swagger
