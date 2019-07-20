@@ -12,7 +12,7 @@ scalaVersion := "2.12.8"
 
 val jacksonVersion = "2.9.8"
 
-lazy val core = (project in file("core")).
+lazy val backend = (project in file("backend")).
   enablePlugins(BuildInfoPlugin).
   enablePlugins(OpenApiSchema).
   settings(
@@ -54,4 +54,4 @@ lazy val application = (project in file("application")).
       "-Dcom.sun.management.jmxremote.port=1077"
     ),
     libraryDependencies += guice
-  ).dependsOn(core)
+  ).dependsOn(backend)
