@@ -3,6 +3,7 @@ package mpd;
 import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
 import util.LogHelper;
+import util.MpcWrapper;
 
 import java.time.Duration;
 import java.util.logging.Logger;
@@ -18,6 +19,9 @@ public class MpdServiceImpl implements MpdService {
     private final boolean xFade = true;
     private final Duration xFadeDuration = Duration.ofSeconds(3);
 
+    // Workaround strange behaving MPD library
+    private final MpcWrapper mpcWrapper;
+
     public MpdServiceImpl(String server, int port) {
         this.server = server;
         this.port = port;
@@ -25,6 +29,8 @@ public class MpdServiceImpl implements MpdService {
                 .server(this.server)
                 .port(this.port)
                 .build();
+
+        this.mpcWrapper = new MpcWrapper(server, port);
     }
 
     @Override
@@ -49,6 +55,7 @@ public class MpdServiceImpl implements MpdService {
     @Override
     public void loadPlaylist(String playlist) {
         logger.info(String.format("Loading playlist '%s'", playlist));
+
         mpd.getPlaylist().clearPlaylist();
         sleep(300);
         mpd.getPlaylist().loadPlaylist(playlist);
@@ -84,7 +91,8 @@ public class MpdServiceImpl implements MpdService {
         Player player = mpd.getPlayer();
         int newVolumeValue = player.getVolume() + 10;
         logger.info(String.format("Increased volume: %d%%", newVolumeValue));
-        player.setVolume(newVolumeValue);
+
+        mpcWrapper.volumeUp(10);
     }
 
     @Override
@@ -92,7 +100,8 @@ public class MpdServiceImpl implements MpdService {
         Player player = mpd.getPlayer();
         int newVolumeValue = player.getVolume() - 10;
         logger.info(String.format("Decreased volume: %d%%", newVolumeValue));
-        player.setVolume(newVolumeValue);
+
+        mpcWrapper.volumeDown(10);
     }
 
     private void sleep(long millis) {
@@ -102,5 +111,4 @@ public class MpdServiceImpl implements MpdService {
             e.printStackTrace();
         }
     }
-
 }
