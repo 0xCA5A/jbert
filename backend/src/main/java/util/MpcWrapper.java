@@ -7,8 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class MpcWrapper {
-    private final static int MAX_VOLUME_PERCENT = 100;
-    private final static int MIN_VOLUME_PERCENT = 50;
+    private final static int MAX_VOLUME_PERCENT = 80;
+    private final static int MIN_VOLUME_PERCENT = 15;
     private static Logger logger = LogHelper.getLogger(MpcWrapper.class.getName());
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
     private final String mpcVolumeCommandSkeleton;
