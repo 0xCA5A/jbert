@@ -10,11 +10,8 @@ val jacksonVersion = "2.9.8"
 
 
 lazy val backend = (project in file("backend")).
-  enablePlugins(BuildInfoPlugin).
   enablePlugins(OpenApiSchema).
   settings(
-    buildInfoKeys := Seq[BuildInfoKey](version, name, sbtVersion, gitHeadCommit, gitHeadCommitDate, gitUncommittedChanges, gitDescribedVersion),
-    buildInfoPackage := "buildinfo",
     openapiTargetLanguage := Language.Java,
     openapiPackage := Pkg("openapi"),
     openapiSpec := (Compile / resourceDirectory).value / "openapi.yaml",
@@ -29,16 +26,19 @@ lazy val backend = (project in file("backend")).
     )
   )
 
-lazy val application = (project in file("application")).
+lazy val jbert = (project in file("application")).
   enablePlugins(PlayMinimalJava).
+  enablePlugins(BuildInfoPlugin).
   enablePlugins(JavaAppPackaging).
   enablePlugins(DebianDeployPlugin).
   enablePlugins(SystemdPlugin).
   settings(
+    buildInfoKeys := Seq[BuildInfoKey](version, name, sbtVersion, gitHeadCommit, gitHeadCommitDate, gitUncommittedChanges, gitDescribedVersion),
+    buildInfoPackage := "buildinfo",
     packageName := name.value,
     packageSummary := "jbert control application",
     packageDescription := """jbert - Audio playback tool for kids""",
-    maintainer := "samuelcasa42@gmail.com",
+    maintainer := "samuelcasa9@gmail.com",
     debianPackageDependencies := Seq("openjdk-8-jre-headless"),
     javaOptions in Universal ++= Seq(
       // JVM memory tuning
