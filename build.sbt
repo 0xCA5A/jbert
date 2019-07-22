@@ -2,15 +2,12 @@ import com.github.eikek.sbt.openapi._
 import com.typesafe.sbt.SbtGit.GitKeys._
 
 
-val projectName = "jbert"
-
-name := projectName
-version := "0.1"
+name := "jbert"
+version := "0.1.0"
 
 scalaVersion := "2.12.8"
-
-
 val jacksonVersion = "2.9.8"
+
 
 lazy val backend = (project in file("backend")).
   enablePlugins(BuildInfoPlugin).
@@ -38,7 +35,7 @@ lazy val application = (project in file("application")).
   enablePlugins(DebianDeployPlugin).
   enablePlugins(SystemdPlugin).
   settings(
-    packageName := projectName,
+    packageName := name.value,
     packageSummary := "jbert control application",
     packageDescription := """jbert - Audio playback tool for kids""",
     maintainer := "samuelcasa42@gmail.com",
