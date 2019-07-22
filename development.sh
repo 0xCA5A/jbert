@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REMOTE_USER="pi"
-PLAYBOOK="bootstrap.yml"
+PLAYBOOK="development.yml"
 
 
 source common.sh

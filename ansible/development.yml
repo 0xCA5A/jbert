@@ -1,0 +1,22 @@
+---
+- hosts: "{{ variable_hosts | default('jberts') }}"
+  become: true
+
+
+  tasks:
+    # Symlink audio MPD directories to pi home
+    - name: Create a symbolic link to MPD music directory
+      file:
+        src: /var/lib/mpd/music
+        dest: /home/pi/music
+        owner: pi
+        group: audio
+        state: link
+
+    - name: Create a symbolic link to MPD playlists directory
+      file:
+        src: /var/lib/mpd/playlists
+        dest: /home/pi/playlists
+        owner: pi
+        group: audio
+        state: link
