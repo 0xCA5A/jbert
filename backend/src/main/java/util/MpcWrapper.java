@@ -7,9 +7,10 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class MpcWrapper {
-    private final static int MAX_VOLUME_PERCENT = 80;
-    private final static int MIN_VOLUME_PERCENT = 15;
+    private final static int MAX_VOLUME = 80; // value in percent
+    private final static int MIN_VOLUME = 15; // value in percent
     private static Logger logger = LogHelper.getLogger(MpcWrapper.class.getName());
+
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
     private final String mpcVolumeCommandSkeleton;
 
@@ -54,8 +55,8 @@ public class MpcWrapper {
 
     public void volumeUp(int percentUp) {
 
-        if (getVolume() >= MAX_VOLUME_PERCENT) {
-            logger.fine(String.format("Ignore volume up event, volume level is already @ %d%%", MAX_VOLUME_PERCENT));
+        if (getVolume() >= MAX_VOLUME) {
+            logger.fine(String.format("Ignore volume up event, volume level is already @ %d%%", MAX_VOLUME));
             return;
         }
 
@@ -66,8 +67,8 @@ public class MpcWrapper {
     }
 
     public void volumeDown(int percentDown) {
-        if (getVolume() <= MIN_VOLUME_PERCENT) {
-            logger.fine(String.format("Ignore volume down event, volume level is already @ %d%%", MIN_VOLUME_PERCENT));
+        if (getVolume() <= MIN_VOLUME) {
+            logger.fine(String.format("Ignore volume down event, volume level is already @ %d%%", MIN_VOLUME));
             return;
         }
 

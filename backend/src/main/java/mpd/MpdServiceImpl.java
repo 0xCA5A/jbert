@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 
 public class MpdServiceImpl implements MpdService {
     private static final Logger logger = LogHelper.getLogger(MpdServiceImpl.class.getName());
+    private static final int VOLUME_CHANGE_STEP = 5; // value in percent
+    private final static int DEFAULT_VOLUME = 20; // value in percent
 
     private final String server;
     private final int port;
@@ -50,6 +52,8 @@ public class MpdServiceImpl implements MpdService {
         if (xFade) {
             mpd.getPlayer().setXFade((int) xFadeDuration.getSeconds());
         }
+
+        mpd.getPlayer().setVolume(DEFAULT_VOLUME);
     }
 
     @Override
@@ -61,7 +65,6 @@ public class MpdServiceImpl implements MpdService {
         mpd.getPlaylist().loadPlaylist(playlist);
         sleep(300);
         mpd.getPlayer().play();
-        sleep(300);
     }
 
     @Override
@@ -89,19 +92,19 @@ public class MpdServiceImpl implements MpdService {
     @Override
     public void increaseVolume() {
         Player player = mpd.getPlayer();
-        int newVolumeValue = player.getVolume() + 10;
+        final int newVolumeValue = player.getVolume() + VOLUME_CHANGE_STEP;
         logger.info(String.format("Increased volume: %d%%", newVolumeValue));
 
-        mpcWrapper.volumeUp(10);
+        mpcWrapper.volumeUp(VOLUME_CHANGE_STEP);
     }
 
     @Override
     public void decreaseVolume() {
         Player player = mpd.getPlayer();
-        int newVolumeValue = player.getVolume() - 10;
+        final int newVolumeValue = player.getVolume() - VOLUME_CHANGE_STEP;
         logger.info(String.format("Decreased volume: %d%%", newVolumeValue));
 
-        mpcWrapper.volumeDown(10);
+        mpcWrapper.volumeDown(VOLUME_CHANGE_STEP);
     }
 
     private void sleep(long millis) {
