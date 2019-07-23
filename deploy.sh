@@ -29,7 +29,7 @@ cat ansible/hosts
 
 echo -e "[i] Run Ansible playbook"
 cd ansible
-time ansible-playbook site.yml -i hosts -u ${REMOTE_USER} -e "local_jbert_deb_package=${APP_DEB_PACKAGE_NAME}"
+time ansible-playbook deploy.yml -i hosts -u ${REMOTE_USER} -e "local_jbert_deb_package=${APP_DEB_PACKAGE_NAME}"
 cd -
 
 echo -e "[i] Remove generated ansible hosts file"

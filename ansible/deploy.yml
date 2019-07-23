@@ -16,9 +16,15 @@
         src: '{{ local_jbert_deb_package }}'
         dest: '{{ jbert_tmp_dir }}/{{ local_jbert_deb_package }}'
 
+    - name: Stop application
+      systemd:
+        name: '{{ jbert_application_name }}'
+        state: stopped
+
     - name: Remove application package
       apt:
         name: '{{ jbert_application_name }}'
+        purge: yes
         state: absent
 
     - name: Install application package
@@ -32,12 +38,16 @@
         owner: '{{ jbert_application_user}}'
         recurse: yes
 
+    - name: Remove application PID file
+      file:
+        path: /usr/share/jbert/RUNNING_PID
+        state: absent
+
     - name: Reload application
       systemd:
         name: '{{ jbert_application_name }}'
         enabled: yes
-        state: reloaded
-        ignore_errors: yes
+        state: restarted
 
 
   post_tasks:

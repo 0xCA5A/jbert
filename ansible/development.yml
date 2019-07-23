@@ -20,3 +20,9 @@
         owner: pi
         group: audio
         state: link
+
+    - name: Add line to log boot time to /run/boottime to /etc/rc.local
+      lineinfile:
+        path: /etc/rc.local
+        insertbefore: '^exit 0'
+        line: 'echo $(cat /proc/uptime) > /run/boot_time'

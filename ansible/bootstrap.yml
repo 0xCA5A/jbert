@@ -15,6 +15,7 @@
     # Manage software packages
     - name: Install software packages
       apt:
+        install_recommends: no
         name: "{{ packages }}"
       vars:
         packages:
@@ -103,6 +104,12 @@
         insertafter: '^.*My ALSA Device'
         line: '        mixer_control	"Speaker"	# optional'
 
+    - name: Do not log from MPD
+      replace:
+        dest: /etc/mpd.conf
+        regexp: '^log_file'
+        replace: '#log_file'
+
 
     # User related modifications
     - name: Add the user 'jbert', appending the groups 'spi' and 'gpio' to the user's groups
@@ -127,6 +134,57 @@
         recurse: yes
         owner: mpd
         group: audio
+
+
+    # Change hostname
+    - name: Replace a localhost entry (not done by hostname)
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.0\.1'
+        line: 127.0.0.1 zero
+
+    - name: Set hostname to zero
+      hostname:
+        name: zero
+
+
+    # Restore default ALSA config
+    - name: Copy default ALSA configuration
+      copy:
+        src: alsa.conf
+        dest: '/home/pi/'
+
+    - name: Add line to restore ALSA config to /etc/rc.local
+      lineinfile:
+        path: /etc/rc.local
+        insertbefore: '^exit 0'
+        line: 'if [ -f /home/pi/alsa.conf ] ; then alsactl restore -f /home/pi/alsa.conf ; fi'
+
+
+    # Add line to rc.local to stop MPD playback
+    - name: Add line to stop mpd playback to /etc/rc.local
+      lineinfile:
+        path: /etc/rc.local
+        insertbefore: '^exit 0'
+        line: 'mpc stop'
+
+
+    # Add line to rc.local to remove jbert application PID file remains
+    - name: Remove jbert PID file remains at boot
+      lineinfile:
+        path: /etc/rc.local
+        insertbefore: '^exit 0'
+        line: 'rm -f /usr/share/jbert/RUNNING_PID'
+
+
+    # Do not wait for network interfaces at boot
+    - name: Do not wait for network interfaces at boot
+      copy:
+        dest: /etc/systemd/system/dhcpcd.service.d/wait.conf
+        content: |
+          [Service]
+          ExecStart=
+          ExecStart=/usr/lib/dhcpcd5/dhcpcd -q -w
 
 
   post_tasks:
