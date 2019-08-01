@@ -36,6 +36,8 @@ The list is not complete.
 
 
 ## jbert Application Release Notes
+### 0.3.0
+
 ### 0.2.0
  * Audio playback control using hardware buttons
    * Volume up / down
@@ -63,7 +65,8 @@ The list is not complete.
  * Decrease system start time
  * Prototype #2
    * Using a UE boom for audio playback
-
+ * Samba for music upload
+ * GraalVM Native Image Plugin (https://sbt-native-packager.readthedocs.io/en/latest/formats/graalvm-native-image.html)
 
 ## How-To
 ### Install Raspbian
