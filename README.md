@@ -35,23 +35,6 @@ Audio player with 9 buttons and a RFID reader to control the audio playback.
 The list is not complete.
 
 
-## jbert Application Release Notes
-### 0.2.0
- * Audio playback control using hardware buttons
-   * Volume up / down
-   * Pause / Play
-   * Next track
-   * Playlist selection (5)
- * Playlist selection using RFID chips
-
-### 0.1.0
- * Audio playback control using hardware buttons
-   * Volume up / down
-   * Pause / Play
-   * Next / previous track
- * Playlist selection using RFID chips
-
-
 ## Todo
  * Web frontend to manage the jbert
    * Audio upload
@@ -63,6 +46,8 @@ The list is not complete.
  * Decrease system start time
  * Prototype #2
    * Using a UE boom for audio playback
+ * Samba for music upload
+ * GraalVM Native Image Plugin (https://sbt-native-packager.readthedocs.io/en/latest/formats/graalvm-native-image.html)
 
 
 ## How-To
