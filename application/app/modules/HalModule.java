@@ -24,11 +24,11 @@ public class HalModule extends AbstractModule {
         bind(ExecutorService.class).toInstance(Executors.newFixedThreadPool(3));
 
         if (halMockEnabled) {
-            bind(RfidService.class).to(RfidServiceMockImpl.class).asEagerSingleton();
             bind(GpioService.class).to(GpioServiceMockImpl.class).asEagerSingleton();
+            bind(RfidService.class).to(RfidServiceMockImpl.class).asEagerSingleton();
         } else {
-            bind(RfidService.class).to(RfidServiceImpl.class).asEagerSingleton();
             bind(GpioService.class).to(GpioServiceImpl.class).asEagerSingleton();
+            bind(RfidService.class).to(RfidServiceImpl.class).asEagerSingleton();
         }
     }
 }
