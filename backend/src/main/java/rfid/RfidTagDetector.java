@@ -1,8 +1,8 @@
 package rfid;
 
 import rfid.rc522.api.RC522SimpleAPI;
-import util.GeneralException;
-import util.LogHelper;
+import utils.GeneralException;
+import utils.LogHelper;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

@@ -1,6 +1,6 @@
 package rfid;
 
-import util.GeneralException;
+import utils.GeneralException;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

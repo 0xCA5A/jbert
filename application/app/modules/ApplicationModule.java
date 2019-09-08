@@ -1,23 +1,46 @@
 package modules;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.name.Names;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import util.LogHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import services.PlaylistService;
+import services.TrackService;
 
-import java.util.logging.Logger;
+import javax.inject.Named;
 
 
 public class ApplicationModule extends AbstractModule {
-    private static final Logger logger = LogHelper.getLogger(ApplicationModule.class.getName());
 
-    private final Config config = ConfigFactory.load();
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationModule.class);
+    private static final Config config = ConfigFactory.load();
+    private static final String PLAYLISTS = "playlists";
+    private static final String TRACKS = "tracks";
 
     @Override
     protected void configure() {
         printBuildInfo();
 
-        install(new BackendModule(config.getConfig("backend")));
+        final Config backendConfig = config.getConfig("backend");
+        final Config apiConfig = config.getConfig("frontend.api");
+
+        install(new BackendModule(backendConfig));
+
+        bind(Config.class).annotatedWith(Names.named(PLAYLISTS)).toInstance(apiConfig.getConfig(PLAYLISTS));
+        bind(Config.class).annotatedWith(Names.named(TRACKS)).toInstance(apiConfig.getConfig(TRACKS));
+    }
+
+    @Provides
+    PlaylistService providePlaylistService(@Named(PLAYLISTS) Config playlistsConfig, TrackService trackService) {
+        return new PlaylistService(playlistsConfig, trackService);
+    }
+
+    @Provides
+    TrackService provideTrackService(@Named(TRACKS) Config tracksConfig) {
+        return new TrackService(tracksConfig);
     }
 
     private void printBuildInfo() {

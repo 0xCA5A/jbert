@@ -1,0 +1,14 @@
+backend {
+  halMockEnabled = true
+}
+
+frontend {
+  api {
+    playlists {
+#      location = "/path/to/your/playlists"
+    }
+    tracks {
+#      location = "/path/to/your/music"
+    }
+  }
+}

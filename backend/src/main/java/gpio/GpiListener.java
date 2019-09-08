@@ -6,7 +6,7 @@ import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import util.LogHelper;
+import utils.LogHelper;
 
 import java.util.logging.Logger;
 

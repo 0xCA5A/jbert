@@ -1,6 +1,6 @@
 package rfid;
 
-import util.LogHelper;
+import utils.LogHelper;
 
 import javax.inject.Inject;
 import java.beans.PropertyChangeListener;

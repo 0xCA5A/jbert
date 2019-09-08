@@ -1,0 +1,11 @@
+GET     /docs                           controllers.api.DocController.index
+GET     /docs/index.html                controllers.api.DocController.index
+
+# Playlists
+GET     /playlists                      controllers.api.PlaylistController.list(q: Option[String])
+POST    /playlists                      controllers.api.PlaylistController.create(request: Request)
+GET     /playlists/:name                controllers.api.PlaylistController.find(name: String)
+PUT     /playlists/:name                controllers.api.PlaylistController.update(name: String, request: Request)
+DELETE  /playlists/:name                controllers.api.PlaylistController.delete(name: String)
+GET     /playlists/:name/tracks         controllers.api.PlaylistController.listTracks(name: String, q: Option[String])
+GET     /playlists/:name/tracks/:index  controllers.api.PlaylistController.getTrackByIndex(name: String, index: Integer)

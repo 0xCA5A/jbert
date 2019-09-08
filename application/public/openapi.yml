@@ -1,0 +1,494 @@
+openapi: "3.0.0"
+info:
+  version: 0.1.0
+  title: jBert
+  description: jBert control application REST interface specification
+  license:
+    name: MIT
+
+servers:
+  - url: http://0.0.0.0:9000/api
+
+tags: [System, Playlists]
+
+paths:
+  /config:
+    get:
+      summary: Returns the current system configuration
+      tags: [System]
+      responses:
+        "200":
+          description: JSON system configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /status:
+    get:
+      summary: Returns general system status / information
+      tags: [System]
+      responses:
+        "200":
+          description: JSON structured system information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /playlists:
+    get:
+      summary: List all playlists
+      tags: [Playlists]
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Filter playlists by name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Playlist"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create a new playlist
+      tags: [Playlists]
+      requestBody:
+        description: The playlist data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Playlist"
+      responses:
+        "201":
+          description: New playlist successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Playlist"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /playlists/{name}:
+    get:
+      summary: Get a playlist
+      tags: [Playlists]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Playlist"
+        "404":
+          description: Playlist not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Update an existing playlist
+      tags: [Playlists]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist to update
+          schema:
+            type: string
+      requestBody:
+        description: The playlist data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Playlist"
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Playlist"
+        "404":
+          description: Playlist not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete an existing playlist
+      tags: [Playlists]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist to delete
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+        "404":
+          description: Playlist not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /playlists/{name}/tracks:
+    get:
+      summary: List all tracks in the playlist
+      tags: [Playlists]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: false
+          description: Filter tracks by name
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tracks"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /playlists/{name}/tracks/{index}:
+    get:
+      summary: Get a track
+      tags: [Playlists]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist
+          schema:
+            type: string
+        - name: index
+          in: path
+          required: true
+          description: The position of the track to remove
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Remove a track from a playlist
+      tags: [Playlists]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist to update
+          schema:
+            type: string
+        - name: trackId
+          in: path
+          required: true
+          description: The id of the track to remove
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /tracks:
+    get:
+      summary: List all tracks
+      tags: [Tracks]
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Filter tracks by metadata attributes
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tracks"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Upload a track
+      tags: [Tracks]
+      requestBody:
+        description: The track data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Track"
+      responses:
+        "201":
+          description: New track successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /tracks/{hash}:
+    get:
+      summary: Get a track by its hash
+      tags: [Tracks]
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: The hash of the track
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+        "404":
+          description: Track not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Update a track
+      tags: [Tracks]
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: The hash of the track to update
+          schema:
+            type: string
+      requestBody:
+        description: The track data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Track"
+      responses:
+        "200":
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+        "404":
+          description: Track not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete a track
+      tags: [Tracks]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: The name of the playlist to delete
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expected response to a valid request
+        "404":
+          description: Track not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Status:
+      properties:
+        systemStatus:
+          $ref: "#/components/schemas/SystemStatus"
+        playerStatus:
+          $ref: "#/components/schemas/PlayerStatus"
+        rfidStatus:
+          $ref: "#/components/schemas/RfidStatus"
+
+    SystemStatus:
+      properties:
+        systemLoad:
+          type: number
+          format: float
+        memUsage:
+          type: number
+          format: float
+        uptime:
+          type: integer
+          format: int32
+
+    PlayerStatus:
+      properties:
+        volume:
+          type: number
+          format: float
+        numberOfPlaylists:
+          type: integer
+          format: int32
+        numberOfTracks:
+          type: integer
+          format: int32
+
+    RfidStatus:
+      properties:
+        enabled:
+          type: boolean
+
+    Config:
+      properties:
+        systemLoad:
+          type: number
+          format: float
+        memUsage:
+          type: number
+          format: float
+
+    Playlist:
+      properties:
+        name:
+          type: string
+        tracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Track"
+
+    Track:
+      properties:
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+        data:
+          description: Base64 encoded data
+          type: string
+
+    Metadata:
+      properties:
+        title:
+          type: string
+          maxLength: 30
+        artist:
+          type: string
+          maxLength: 30
+        album:
+          type: string
+          maxLength: 30
+        year:
+          type: integer
+          format: int32
+        genre:
+          type: string
+        comment:
+          type: string
+          maxLength: 30
+        duration:
+          type: integer
+          format: int32
+
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

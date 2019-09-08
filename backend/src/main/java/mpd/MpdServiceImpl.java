@@ -2,8 +2,8 @@ package mpd;
 
 import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
-import util.LogHelper;
-import util.MpcWrapper;
+import utils.LogHelper;
+import utils.MpcWrapper;
 
 import java.time.Duration;
 import java.util.logging.Logger;

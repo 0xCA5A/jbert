@@ -1,6 +1,6 @@
 package gpio;
 
-import util.LogHelper;
+import utils.LogHelper;
 
 import java.util.logging.Logger;
 

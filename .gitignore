@@ -1,7 +1,4 @@
-application/target
-backend/target
-project/target
-target
+logs/
+target/
 
-application/logs
-application/swagger
+*.local.conf
