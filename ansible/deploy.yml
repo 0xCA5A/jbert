@@ -28,6 +28,7 @@
       systemd:
         name: '{{ jbert_application_name }}'
         state: stopped
+      ignore_errors: yes
 
     - name: Remove application package
       apt:
