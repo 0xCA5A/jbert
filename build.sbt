@@ -1,3 +1,4 @@
+import play.sbt.PlayImport
 import com.github.eikek.sbt.openapi._
 import com.typesafe.sbt.SbtGit.GitKeys._
 
@@ -50,5 +51,5 @@ lazy val jbert = (project in file("application")).
       "-Dcom.sun.management.jmxremote.authenticate=false",
       "-Dcom.sun.management.jmxremote.port=1077"
     ),
-    libraryDependencies += guice
+    libraryDependencies += PlayImport.guice
   ).dependsOn(backend)
