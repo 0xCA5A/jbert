@@ -41,7 +41,7 @@ public class RfidTagDetector {
     }
 
     private void findRfidTags() {
-        while (true) {
+        while (!Thread.interrupted()) {
             readRfidTagUid().ifPresent(this::notifyListener);
             ThreadHelper.snooze(scanInterval);
         }

@@ -43,7 +43,7 @@ public class RfidServiceMockImpl implements RfidService {
     }
 
     private void fireRandomRfidTagFoundEvents() {
-        while (true) {
+        while (!Thread.interrupted()) {
             ThreadHelper.snooze(Duration.ofSeconds(10));
             RfidTagUid rfidTagUid = getRandomRfidTagUid();
             notifyListener(rfidTagUid);
