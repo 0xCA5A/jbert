@@ -1,19 +1,21 @@
 package mpd;
 
-import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
 import util.LogHelper;
 import util.MpcWrapper;
 import util.ThreadHelper;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 
 public class MpdServiceImpl implements MpdService {
     private static final Logger logger = LogHelper.getLogger(MpdServiceImpl.class.getName());
-    private static final int VOLUME_CHANGE_STEP = 5; // value in percent
-    private final static int DEFAULT_VOLUME = 20; // value in percent
+    private static final int VOLUME_CHANGE_STEP_IN_PERCENT = 5;
+    private final static int DEFAULT_VOLUME_IN_PERCENT = 25;
+    private final static int MAX_VOLUME_IN_PERCENT = 75;
+    private final static int MIN_VOLUME_IN_PERCENT = 15;
 
     private final String server;
     private final int port;
@@ -23,7 +25,7 @@ public class MpdServiceImpl implements MpdService {
     private final boolean xFade = true;
     private final Duration xFadeDuration = Duration.ofSeconds(3);
 
-    // Workaround strange behaving MPD library
+    // Workaround for strange behaving MPD library
     private final MpcWrapper mpcWrapper;
 
     public MpdServiceImpl(String server, int port) {
@@ -54,7 +56,7 @@ public class MpdServiceImpl implements MpdService {
             mpd.getPlayer().setXFade((int) xFadeDuration.getSeconds());
         }
 
-        mpd.getPlayer().setVolume(DEFAULT_VOLUME);
+        mpd.getPlayer().setVolume(DEFAULT_VOLUME_IN_PERCENT);
     }
 
     @Override
@@ -92,19 +94,29 @@ public class MpdServiceImpl implements MpdService {
 
     @Override
     public void increaseVolume() {
-        Player player = mpd.getPlayer();
-        final int newVolumeValue = player.getVolume() + VOLUME_CHANGE_STEP;
-        logger.info(String.format("Increased volume: %d%%", newVolumeValue));
-
-        mpcWrapper.volumeUp(VOLUME_CHANGE_STEP);
+        mpcWrapper.getVolume()
+                .flatMap(this::checkVolumeIncrease)
+                .flatMap(mpcWrapper::setVolume);
     }
 
     @Override
     public void decreaseVolume() {
-        Player player = mpd.getPlayer();
-        final int newVolumeValue = player.getVolume() - VOLUME_CHANGE_STEP;
-        logger.info(String.format("Decreased volume: %d%%", newVolumeValue));
+        mpcWrapper.getVolume()
+                .flatMap(this::checkVolumeDecrease)
+                .flatMap(mpcWrapper::setVolume);
+    }
 
-        mpcWrapper.volumeDown(VOLUME_CHANGE_STEP);
+    private Optional<Integer> checkVolumeIncrease(int volume) {
+        final int targetValue = volume + VOLUME_CHANGE_STEP_IN_PERCENT;
+        return targetValue > MAX_VOLUME_IN_PERCENT
+                ? Optional.empty()
+                : Optional.of(targetValue);
+    }
+
+    private Optional<Integer> checkVolumeDecrease(int volume) {
+        final int targetValue = volume - VOLUME_CHANGE_STEP_IN_PERCENT;
+        return targetValue < MIN_VOLUME_IN_PERCENT
+                ? Optional.empty()
+                : Optional.of(targetValue);
     }
 }
