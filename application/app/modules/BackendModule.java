@@ -32,7 +32,7 @@ public class BackendModule extends AbstractModule {
         final Config mpdConfig = backendConfig.getConfig("mpd");
         MpdServiceImpl mpdService = new MpdServiceImpl(mpdConfig.getString("server"), mpdConfig.getInt("port"));
 
-        mpdService.isConnected();
+        mpdService.ensureConnection();
         mpdService.configure();
 
         return mpdService;
