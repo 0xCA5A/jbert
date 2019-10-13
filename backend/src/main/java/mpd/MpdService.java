@@ -1,7 +1,7 @@
 package mpd;
 
 public interface MpdService {
-    void isConnected();
+    void ensureConnection();
 
     void configure();
 

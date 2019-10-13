@@ -1,6 +1,7 @@
 package rfid;
 
 import util.LogHelper;
+import util.ThreadHelper;
 
 import javax.inject.Inject;
 import java.beans.PropertyChangeListener;
@@ -43,7 +44,7 @@ public class RfidServiceMockImpl implements RfidService {
 
     private void fireRandomRfidTagFoundEvents() {
         while (true) {
-            RfidTagDetector.snooze(Duration.ofSeconds(10));
+            ThreadHelper.snooze(Duration.ofSeconds(10));
             RfidTagUid rfidTagUid = getRandomRfidTagUid();
             notifyListener(rfidTagUid);
         }

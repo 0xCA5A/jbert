@@ -1,8 +1,8 @@
 package rfid;
 
 import rfid.rc522.api.RC522SimpleAPI;
-import util.GeneralException;
 import util.LogHelper;
+import util.ThreadHelper;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -22,15 +22,14 @@ public class RfidTagDetector {
 
     private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
-    public void notifyListener(RfidTagUid rfidTagUid) {
-        propertyChangeSupport.firePropertyChange("rfidTagUid", this.rfidTagUid, rfidTagUid);
-        this.rfidTagUid = rfidTagUid;
-    }
-
     public void start(ExecutorService executorService, Duration scanInterval) {
         this.executorService = executorService;
         this.scanInterval = scanInterval;
         executorService.submit(this::findRfidTags);
+    }
+
+    public void stop() {
+        executorService.shutdown();
     }
 
     public void addListener(PropertyChangeListener listener) {
@@ -44,21 +43,13 @@ public class RfidTagDetector {
     private void findRfidTags() {
         while (true) {
             readRfidTagUid().ifPresent(this::notifyListener);
-            snooze(scanInterval);
+            ThreadHelper.snooze(scanInterval);
         }
     }
 
-    public void stop() {
-        executorService.shutdown();
-    }
-
-    static void snooze(Duration duration) {
-        try {
-            Thread.sleep(duration.toMillis());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new GeneralException(e);
-        }
+    private void notifyListener(RfidTagUid rfidTagUid) {
+        propertyChangeSupport.firePropertyChange("rfidTagUid", this.rfidTagUid, rfidTagUid);
+        this.rfidTagUid = rfidTagUid;
     }
 
     private Optional<RfidTagUid> readRfidTagUid() {
@@ -74,6 +65,4 @@ public class RfidTagDetector {
         }
         return Optional.empty();
     }
-
-
 }

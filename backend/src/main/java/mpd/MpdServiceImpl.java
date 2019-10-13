@@ -4,9 +4,11 @@ import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
 import util.LogHelper;
 import util.MpcWrapper;
+import util.ThreadHelper;
 
 import java.time.Duration;
 import java.util.logging.Logger;
+
 
 public class MpdServiceImpl implements MpdService {
     private static final Logger logger = LogHelper.getLogger(MpdServiceImpl.class.getName());
@@ -36,10 +38,9 @@ public class MpdServiceImpl implements MpdService {
     }
 
     @Override
-    public void isConnected() {
-        logger.info(String.format("Configure MPD communicator [%s:%d]", server, port));
+    public void ensureConnection() {
         if (!mpd.isConnected()) {
-            throw new RuntimeException(String.format("Can not establish connection to MPD server %s:%d", server, port));
+            throw new IllegalStateException(String.format("Can not establish connection to MPD server %s:%d", server, port));
         }
     }
 
@@ -61,9 +62,9 @@ public class MpdServiceImpl implements MpdService {
         logger.info(String.format("Loading playlist '%s'", playlist));
 
         mpd.getPlaylist().clearPlaylist();
-        sleep(300);
+        ThreadHelper.snooze(Duration.ofMillis(300));
         mpd.getPlaylist().loadPlaylist(playlist);
-        sleep(300);
+        ThreadHelper.snooze(Duration.ofMillis(300));
         mpd.getPlayer().play();
     }
 
@@ -105,13 +106,5 @@ public class MpdServiceImpl implements MpdService {
         logger.info(String.format("Decreased volume: %d%%", newVolumeValue));
 
         mpcWrapper.volumeDown(VOLUME_CHANGE_STEP);
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }
