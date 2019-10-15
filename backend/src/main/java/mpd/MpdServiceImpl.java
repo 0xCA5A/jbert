@@ -1,17 +1,17 @@
 package mpd;
 
 import org.bff.javampd.server.MPD;
-import util.LogHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.MpcWrapper;
 import util.ThreadHelper;
 
 import java.time.Duration;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 
 public class MpdServiceImpl implements MpdService {
-    private static final Logger logger = LogHelper.getLogger(MpdServiceImpl.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MpdServiceImpl.class);
     private static final int VOLUME_CHANGE_STEP_IN_PERCENT = 5;
     private final static int DEFAULT_VOLUME_IN_PERCENT = 25;
     private final static int MAX_VOLUME_IN_PERCENT = 75;
@@ -49,7 +49,7 @@ public class MpdServiceImpl implements MpdService {
     @Override
     public void configure() {
         if (playerRepeat) {
-            logger.config("Enable repeat playing");
+            logger.info("Enable repeat playing");
             mpd.getPlayer().setRepeat(true);
         }
         if (xFade) {
@@ -61,7 +61,7 @@ public class MpdServiceImpl implements MpdService {
 
     @Override
     public void loadPlaylist(String playlist) {
-        logger.info(String.format("Loading playlist '%s'", playlist));
+        logger.info("Loading playlist '{}'", playlist);
 
         mpd.getPlaylist().clearPlaylist();
         ThreadHelper.snooze(Duration.ofMillis(300));
@@ -83,13 +83,13 @@ public class MpdServiceImpl implements MpdService {
     @Override
     public void playNext() {
         mpd.getPlayer().playNext();
-        logger.info(String.format("Next track in playlist selected, playing: %s", mpd.getPlayer().getCurrentSong()));
+        logger.info("Next track in playlist selected, playing: {}", mpd.getPlayer().getCurrentSong());
     }
 
     @Override
     public void playPrevious() {
         mpd.getPlayer().playPrevious();
-        logger.info(String.format("Previous track in playlist selected, playing: %s", mpd.getPlayer().getCurrentSong()));
+        logger.info("Previous track in playlist selected, playing: {}", mpd.getPlayer().getCurrentSong());
     }
 
     @Override

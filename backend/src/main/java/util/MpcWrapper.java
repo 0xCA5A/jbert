@@ -1,15 +1,17 @@
 package util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class MpcWrapper {
-    private static Logger logger = LogHelper.getLogger(MpcWrapper.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(MpcWrapper.class);
     private static final String VOLUME_MATCH_GROUP_NAME = "volume";
     private static final String VOLUME_PATTERN = "^\\s*volume:\\s(?<" + VOLUME_MATCH_GROUP_NAME + ">\\d+)%.*$";
     private static final Pattern MPC_VOLUME_PATTERN = Pattern.compile(VOLUME_PATTERN, Pattern.DOTALL);
@@ -44,7 +46,7 @@ public class MpcWrapper {
     private Optional<Integer> extractVolumeValue(String mpcVolumeCommandOut) {
         final Matcher matcher = MPC_VOLUME_PATTERN.matcher(mpcVolumeCommandOut);
         if (!matcher.find()) {
-            logger.warning("Volume information not found in MPC volume command output stream");
+            logger.error("Volume information not found in MPC volume command output stream");
             return Optional.empty();
         } else {
             final String match = matcher.group(VOLUME_MATCH_GROUP_NAME);

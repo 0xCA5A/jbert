@@ -1,10 +1,13 @@
 package util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
-import java.util.logging.Logger;
+
 
 public class ThreadHelper {
-    private static final Logger logger = LogHelper.getLogger(ThreadHelper.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ThreadHelper.class);
 
     public static void snooze(Duration duration) {
         try {
@@ -12,7 +15,7 @@ public class ThreadHelper {
         } catch (InterruptedException e) {
             final long threadId = Thread.currentThread().getId();
             final String threadName = Thread.currentThread().getName();
-            logger.severe(String.format("Current thread '%s' (id: %d) was interrupted while sleeping: %s", threadName, threadId, e.getMessage()));
+            logger.error("Current thread '{}' (id: {}) was interrupted while sleeping: {}", threadName, threadId, e.getMessage());
         }
     }
 }

@@ -1,6 +1,7 @@
 package rfid;
 
-import util.LogHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ThreadHelper;
 
 import javax.inject.Inject;
@@ -13,11 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 
 
 public class RfidServiceMockImpl implements RfidService {
-    private static final Logger logger = LogHelper.getLogger(RfidServiceMockImpl.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RfidServiceMockImpl.class);
     private static final Map<String, RfidTagUid> PLAYLIST_RFID_TAG_UID_MAP = new HashMap<>();
 
     static {
@@ -60,7 +60,7 @@ public class RfidServiceMockImpl implements RfidService {
         propertyChangeSupport.firePropertyChange("rfidTagUid", this.rfidTagUid, rfidTagUid);
         this.rfidTagUid = rfidTagUid;
 
-        logger.info(String.format("Notification for RFID Tag UID '%s' fired", rfidTagUid));
+        logger.info("Notification for RFID Tag UID '{}' fired", rfidTagUid);
     }
 
     @Override

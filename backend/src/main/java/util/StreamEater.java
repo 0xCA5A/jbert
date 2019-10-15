@@ -9,7 +9,7 @@ public class StreamEater implements Runnable {
     private InputStream inputStream;
     private Consumer<String> consumer;
 
-    public StreamEater(InputStream inputStream, Consumer<String> consumer) {
+    StreamEater(InputStream inputStream, Consumer<String> consumer) {
         this.inputStream = inputStream;
         this.consumer = consumer;
     }
