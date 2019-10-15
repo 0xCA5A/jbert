@@ -1,7 +1,8 @@
 package rfid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rfid.rc522.api.RC522SimpleAPI;
-import util.LogHelper;
 import util.ThreadHelper;
 
 import java.beans.PropertyChangeListener;
@@ -9,11 +10,10 @@ import java.beans.PropertyChangeSupport;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 
 
 public class RfidTagDetector {
-    private static final Logger logger = LogHelper.getLogger(RfidTagDetector.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RfidTagDetector.class);
 
     private ExecutorService executorService;
     private Duration scanInterval = Duration.ofSeconds(1);
@@ -57,11 +57,11 @@ public class RfidTagDetector {
             byte[] uid = new byte[5];
             RC522SimpleAPI.getInstance().findCards().getUid(uid);
             RfidTagUid rfidTagUid = new RfidTagUid(uid);
-            logger.fine(String.format("RFID tag detected: %s", rfidTagUid));
+            logger.debug("RFID tag detected: {}", rfidTagUid);
             return Optional.of(rfidTagUid);
 
         } catch (RC522SimpleAPI.SimpleAPIException e) {
-            logger.fine(String.format("No RFID tag detected (read interval: %sms)", scanInterval.toMillis()));
+            logger.debug("No RFID tag detected (read interval: {}ms)", scanInterval.toMillis());
         }
         return Optional.empty();
     }

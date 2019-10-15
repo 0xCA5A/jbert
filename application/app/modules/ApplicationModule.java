@@ -3,13 +3,12 @@ package modules;
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import util.LogHelper;
-
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ApplicationModule extends AbstractModule {
-    private static final Logger logger = LogHelper.getLogger(ApplicationModule.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationModule.class);
 
     private final Config config = ConfigFactory.load();
 
@@ -30,6 +29,6 @@ public class ApplicationModule extends AbstractModule {
         if (buildinfo.BuildInfo.gitUncommittedChanges()) {
             version += "~dirty";
         }
-        logger.info("Build info: " + version);
+        logger.info("Build info: {}", version);
     }
 }

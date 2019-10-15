@@ -1,19 +1,21 @@
 package util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 
 class SystemCall {
-    private static Logger logger = LogHelper.getLogger(SystemCall.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(SystemCall.class);
 
     public Optional<SystemCallResult> fire(ExecutorService executorService, String command) {
         return fire(executorService, command, 0);
     }
 
     public Optional<SystemCallResult> fire(ExecutorService executorService, String command, int expectedExitCode) {
-        logger.fine(String.format("Fire system call '%s'", command));
+        logger.debug("Fire system call '{}'", command);
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(false).command(command.split(" "));
@@ -35,7 +37,7 @@ class SystemCall {
             return checkExitCode(command, systemCallResult, expectedExitCode);
 
         } catch (IOException | InterruptedException exception) {
-            logger.severe(String.format("Failed running system call '%s': %s", command, exception.getMessage()));
+            logger.error("Failed running system call '{}': {}", command, exception.getMessage());
             return Optional.empty();
         }
     }
@@ -44,9 +46,7 @@ class SystemCall {
         if (systemCallResult.getExitCode() == expectedExitCode) {
             return Optional.of(systemCallResult);
         } else {
-            final String errorMessage = String.format("Command '%s' returned with unexpected exit code '%d': '%s'",
-                    command, systemCallResult.getExitCode(), systemCallResult);
-            logger.severe(errorMessage);
+            logger.error("Command '{}' returned with unexpected exit code: '{}}'", command, systemCallResult);
             return Optional.empty();
         }
     }
