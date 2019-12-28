@@ -44,7 +44,7 @@ lazy val jbert = (project in file("application")).
     javaOptions in Universal ++= Seq(
       // JVM memory tuning
       "-J-Xmx256m",
-      "-J-Xms128m",
+      "-J-Xms64m",
       // JMX monitoring
       "-Dcom.sun.management.jmxremote",
       "-Dcom.sun.management.jmxremote.ssl=false",
