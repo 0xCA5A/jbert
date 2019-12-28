@@ -6,7 +6,7 @@ import com.typesafe.sbt.SbtGit.GitKeys._
 name := "jbert"
 version := "0.3.0"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.13.0"
 val jacksonVersion = "2.9.8"
 
 
