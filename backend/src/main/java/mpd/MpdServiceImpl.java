@@ -1,12 +1,15 @@
 package mpd;
 
+import org.bff.javampd.player.Player;
 import org.bff.javampd.server.MPD;
+import org.bff.javampd.song.MPDSong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.MpcWrapper;
 import util.ThreadHelper;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -67,12 +70,23 @@ public class MpdServiceImpl implements MpdService {
         ThreadHelper.snooze(Duration.ofMillis(300));
         mpd.getPlaylist().loadPlaylist(playlist);
         ThreadHelper.snooze(Duration.ofMillis(300));
-        mpd.getPlayer().play();
     }
 
     @Override
     public void play() {
         mpd.getPlayer().play();
+    }
+
+    @Override
+    public void play(int trackIndex) {
+        final List<MPDSong> songList = mpd.getPlaylist().getSongList();
+
+        if (trackIndex >= songList.size()) {
+            final String message = String.format("No track #%d found in currant playlist (%d songs)", trackIndex, songList.size());
+            throw new IllegalArgumentException(message);
+        } else {
+            mpd.getPlayer().playSong(songList.get(trackIndex));
+        }
     }
 
     @Override
@@ -82,8 +96,10 @@ public class MpdServiceImpl implements MpdService {
 
     @Override
     public void playNext() {
-        mpd.getPlayer().playNext();
-        logger.info("Next track in playlist selected, playing: {}", mpd.getPlayer().getCurrentSong());
+        final Player player = mpd.getPlayer();
+
+        player.playNext();
+        logger.info("Next track in playlist selected, playing: {}", player.getCurrentSong());
     }
 
     @Override
