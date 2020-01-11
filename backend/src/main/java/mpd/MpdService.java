@@ -9,6 +9,8 @@ public interface MpdService {
 
     void play();
 
+    void play(int trackIndex);
+
     void pause();
 
     void playNext();
