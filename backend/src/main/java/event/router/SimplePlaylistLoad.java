@@ -36,8 +36,9 @@ public class SimplePlaylistLoad implements EventRouter {
     @Override
     public void configure() {
         configureRfidListener();
-        configurePlaylistSelectGpiListener();
+
         EventRouterUtil.configureControlGpiListener(gpioService, mpdService);
+        configurePlaylistSelectGpiListener();
     }
 
     private void configureRfidListener() {
