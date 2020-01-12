@@ -19,13 +19,17 @@ if [[ ! -f ${APP_DEB_PACKAGE} ]]; then
 fi
 APP_DEB_PACKAGE_NAME=$(basename "${APP_DEB_PACKAGE}")
 
-
 echo -e "[i] Symlink Debian installation package to ansible directory"
 ln -fvs "$(pwd)/${APP_DEB_PACKAGE}" ansible
 
 echo -e "[i] Create a Ansible hosts file"
 echo -e "[jberts]\n${TARGET_HOST}" > ansible/hosts
 cat ansible/hosts
+
+if [[ -f "$(pwd)/application.conf" ]]; then
+  echo -e "[i] Symlink application configuration file to ansible directory"
+  ln -fvs "$(pwd)/application.conf" ansible
+fi
 
 echo -e "[i] Run Ansible playbook"
 cd ansible
@@ -36,7 +40,9 @@ echo -e "[i] Remove generated ansible hosts file"
 rm -v ansible/hosts
 
 echo -e "[i] Remove symlink to Debian installation package in ansible directory"
-rm -v "ansible/${APP_DEB_PACKAGE_NAME}"
+rm -fv "ansible/${APP_DEB_PACKAGE_NAME}"
 
+echo -e "[i] Remove symlink to application configuration ansible directory"
+rm -fv "ansible/${APP_DEB_PACKAGE_NAME}"
 
 echo -e "[i] Done"

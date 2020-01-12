@@ -5,3 +5,5 @@ target
 
 application/logs
 application/swagger
+
+application.conf

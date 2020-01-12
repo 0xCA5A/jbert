@@ -6,5 +6,6 @@ jbert_application_user: jbert
 
 jbert_tmp_dir: /tmp/{{ jbert_application_name }}
 jbert_application_root: /usr/share/{{ jbert_application_name }}
+jbert_config_file : application.conf
 
 

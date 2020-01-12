@@ -4,6 +4,14 @@
 
 
   pre_tasks:
+    - name: Check for local application config file
+      local_action: stat path={{ jbert_config_file }}
+      become: false
+      register: local_config_file
+    - fail:
+        msg: "Configuration file {{ jbert_config_file }} not found"
+      when: local_config_file.stat.exists == False
+
     - name: Creates a temporary directory
       file:
         path: '{{ jbert_tmp_dir }}'
@@ -35,13 +43,21 @@
     - name: Change jbert application file permissions
       file:
         path: '{{ jbert_application_root }}'
-        owner: '{{ jbert_application_user}}'
+        owner: '{{ jbert_application_user }}'
         recurse: yes
 
     - name: Remove application PID file
       file:
         path: /usr/share/jbert/RUNNING_PID
         state: absent
+
+    - name: Copy application.conf if existing
+      copy:
+        src: '{{ jbert_config_file }}'
+        dest: '/usr/share/jbert/conf/application.conf'
+        owner: '{{ jbert_application_user }}'
+        follow: true
+        force: true
 
     - name: Reload application
       systemd:
