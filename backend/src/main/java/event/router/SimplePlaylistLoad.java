@@ -2,63 +2,51 @@ package event.router;
 
 import gpio.GpioService;
 import gpio.PlaylistLoadAction;
+import hal.JbertPlaylistSelectButton;
 import mpd.MpdService;
 import rfid.RfidService;
 import rfid.RfidTagUid;
 
-import javax.inject.Inject;
-
-import static hal.JbertPlaylistSelectButtonName.BLACK;
-import static hal.JbertPlaylistSelectButtonName.BLUE;
-import static hal.JbertPlaylistSelectButtonName.GREEN;
-import static hal.JbertPlaylistSelectButtonName.RED;
-import static hal.JbertPlaylistSelectButtonName.YELLOW;
+import java.util.EnumSet;
+import java.util.Map;
 
 
 /**
- * Event router implementation loading playlists by GPI and RFID event
+ * Event router implementation loading playlists by GPI and RFID events
+ * <p>
+ * Loads and plays playlists
+ * <ul>
+ *     <li>on button events named by JbertPlaylistSelectButton event elements (lower case)</li>
+ *     <li>on RFID tag detection events, mapping defined in the application configuration</li>
+ * </ul>
  */
 public class SimplePlaylistLoad implements EventRouter {
+    private final Map<RfidTagUid, String> rfidTagMapping;
+    private final EventRouterUtil eventRouterUtil;
+
     // Event sources
-    private final RfidService rfidService;
     private final GpioService gpioService;
 
     // Event sinks
     private final MpdService mpdService;
 
-    @Inject
-    public SimplePlaylistLoad(RfidService rfidService, GpioService gpioService, MpdService mpdService) {
-        this.rfidService = rfidService;
+    public SimplePlaylistLoad(Map<RfidTagUid, String> rfidTagMapping, RfidService rfidService, GpioService gpioService, MpdService mpdService) {
+        this.rfidTagMapping = rfidTagMapping;
+        this.eventRouterUtil = new EventRouterUtil(rfidService, mpdService);
         this.gpioService = gpioService;
         this.mpdService = mpdService;
     }
 
     @Override
     public void configure() {
-        configureRfidListener();
+        eventRouterUtil.registerPlaylistChangeActions(rfidTagMapping, true);
+        eventRouterUtil.configureControlGpiListener(gpioService, mpdService);
 
-        EventRouterUtil.configureControlGpiListener(gpioService, mpdService);
-        configurePlaylistSelectGpiListener();
+        configureGpioEventHandling();
     }
 
-    private void configureRfidListener() {
-        registerRfidServiceListener(new RfidTagUid("55-68-00-D2-EF"), "red");
-        registerRfidServiceListener(new RfidTagUid("FA-00-9C-73-15"), "black");
-        registerRfidServiceListener(new RfidTagUid("E5-EA-00-D2-DD"), "green");
-        registerRfidServiceListener(new RfidTagUid("F5-BA-4E-D3-D2"), "blue");
-        registerRfidServiceListener(new RfidTagUid("F5-82-FE-D1-58"), "yellow");
-    }
-
-    private void registerRfidServiceListener(RfidTagUid rfidTagUid, String playlist) {
-        PlaylistChangeAction playListChangeAction = new PlaylistChangeAction(mpdService, rfidTagUid, playlist, true);
-        rfidService.addListener(playListChangeAction);
-    }
-
-    private void configurePlaylistSelectGpiListener() {
-        gpioService.registerGpiListener(RED, new PlaylistLoadAction(mpdService, "red"));
-        gpioService.registerGpiListener(BLACK, new PlaylistLoadAction(mpdService, "black"));
-        gpioService.registerGpiListener(GREEN, new PlaylistLoadAction(mpdService, "green"));
-        gpioService.registerGpiListener(BLUE, new PlaylistLoadAction(mpdService, "blue"));
-        gpioService.registerGpiListener(YELLOW, new PlaylistLoadAction(mpdService, "yellow"));
+    private void configureGpioEventHandling() {
+        EnumSet.allOf(JbertPlaylistSelectButton.class).forEach((e) -> gpioService.registerGpiListener(e.getGpioName(),
+                new PlaylistLoadAction(mpdService, e.toString().toLowerCase())));
     }
 }

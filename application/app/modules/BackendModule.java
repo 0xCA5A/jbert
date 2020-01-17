@@ -2,23 +2,22 @@ package modules;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.name.Names;
 import com.typesafe.config.Config;
 import event.EventService;
+import event.EventServiceConfig;
 import event.EventServiceImpl;
 import event.router.EventRouterType;
 import mpd.MpdService;
 import mpd.MpdServiceImpl;
+import rfid.RfidTagUid;
 
-import javax.inject.Inject;
-
-import static event.EventServiceImpl.EVENT_ROUTER_TYPE_NAME;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class BackendModule extends AbstractModule {
     private final Config backendConfig;
 
-    @Inject
     BackendModule(Config backendConfig) {
         this.backendConfig = backendConfig;
     }
@@ -26,13 +25,27 @@ public class BackendModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new HalModule(backendConfig.getBoolean("halMockEnabled")));
+        bind(EventService.class).to(EventServiceImpl.class).asEagerSingleton();
+    }
 
+    @Provides
+    private EventServiceConfig provideEventServiceConfig() {
+        // Parse event router type
         final Config eventRouterConfig = backendConfig.getConfig("eventRouter");
         final String eventRouterName = eventRouterConfig.getString("name");
         final EventRouterType eventRouterType = EventRouterType.valueOf(eventRouterName);
-        bindConstant().annotatedWith(Names.named(EVENT_ROUTER_TYPE_NAME)).to(eventRouterType);
-        bind(EventService.class).to(EventServiceImpl.class).asEagerSingleton();
 
+        // Parse RFID tag mapping
+        final Config rfidTagConfig = backendConfig.getConfig("rfidTag");
+        final Map<RfidTagUid, String> rfidTagMapping = parseRfidTagMappingConfig(rfidTagConfig.getConfig("mapping"));
+
+        return new EventServiceConfig(eventRouterType, rfidTagMapping);
+    }
+
+    private Map<RfidTagUid, String> parseRfidTagMappingConfig(Config rfidTagMappingConfig) {
+        return rfidTagMappingConfig.entrySet().stream()
+                .collect(Collectors.toMap(e -> new RfidTagUid(e.getKey()),
+                        e -> e.getValue().unwrapped().toString().replace("\"", "")));
     }
 
     @Provides
