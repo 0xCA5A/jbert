@@ -8,16 +8,13 @@ import rfid.RfidService;
 import rfid.RfidServiceImpl;
 import rfid.RfidServiceMockImpl;
 
-import javax.inject.Inject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
 public class HalModule extends AbstractModule {
-
     private final boolean halMockEnabled;
 
-    @Inject
     HalModule(boolean halMockEnabled) {
         this.halMockEnabled = halMockEnabled;
     }
