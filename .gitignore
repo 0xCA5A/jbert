@@ -1,9 +1,6 @@
-application/target
-backend/target
-project/target
-target
+.idea
+.gradle
 
-application/logs
-application/swagger
+build
 
-application.conf
+application.yml
