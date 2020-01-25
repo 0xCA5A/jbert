@@ -1,3 +1,13 @@
 micronaut:
   application:
     name: jbert
+
+core:
+  hal:
+    mock:
+      enabled: false
+  rfid:
+    scan-interval: 2s
+  mpd:
+    server: "localhost"
+    port: 6600
