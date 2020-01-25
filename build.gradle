@@ -1,13 +1,15 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "5.0.0"
     id "application"
+    id "java"
     id "net.ltgt.apt-eclipse" version "0.21"
 }
 
-
-
-version "0.1"
+version "0.3.0"
 group "ch.jbert"
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
 
 repositories {
     mavenCentral()
@@ -16,10 +18,11 @@ repositories {
 
 configurations {
     // for dependencies that are needed for development only
-    developmentOnly 
+    developmentOnly
 }
 
 dependencies {
+    // Micronaut generated dependencies
     annotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     annotationProcessor "io.micronaut:micronaut-graal"
     annotationProcessor "io.micronaut:micronaut-inject-java"
@@ -38,6 +41,9 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "io.micronaut.test:micronaut-test-junit5"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+    // Sub-Project dependencies
+    compile project(':core')
 }
 
 test.classpath += configurations.developmentOnly
@@ -53,8 +59,17 @@ shadowJar {
 }
 
 run.classpath += configurations.developmentOnly
-run.jvmArgs('-noverify', '-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')
-tasks.withType(JavaCompile){
+run.jvmArgs("-noverify",
+        "-XX:TieredStopAtLevel=1",
+        "-Dcom.sun.management.jmxremote",
+        "-Dcom.sun.management.jmxremote.port=7777",
+        "-Dcom.sun.management.jmxremote.local.only=false",
+        "-Dcom.sun.management.jmxremote.authenticate=false",
+        "-Dcom.sun.management.jmxremote.ssl=false")
+
+tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    options.compilerArgs.add('-parameters')
+    options.compilerArgs.add("-parameters")
+    options.compilerArgs.add("-deprecation")
+    options.compilerArgs.add("-Werror")
 }

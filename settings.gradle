@@ -1,1 +1,3 @@
 rootProject.name="jbert"
+
+include 'core'
