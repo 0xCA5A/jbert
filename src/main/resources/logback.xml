@@ -9,7 +9,21 @@
         </encoder>
     </appender>
 
-    <root level="info">
-        <appender-ref ref="STDOUT" />
+    <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+    <logger name="ch.jbert" level="DEBUG"/>
+    <logger name="ch.jbert.event" level="DEBUG"/>
+    <logger name="ch.jbert.gpio" level="DEBUG"/>
+    <logger name="ch.jbert.mpd" level="DEBUG"/>
+    <logger name="ch.jbert.rfid" level="DEBUG"/>
+    <logger name="ch.jbert.util" level="DEBUG"/>
+
+    <logger name="org.bff.javampd" level="ERROR"/>
+    <logger name="io.micronaut" level="ERROR"/>
+
+    <root level="INFO">
+        <appender-ref ref="ASYNCSTDOUT"/>
     </root>
 </configuration>
