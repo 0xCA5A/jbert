@@ -50,7 +50,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayLists"
+                $ref: "#/components/schemas/Playlists"
         default:
           description: unexpected error
           content:
@@ -65,7 +65,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayList"
+                $ref: "#/components/schemas/Playlist"
         default:
           description: unexpected error
           content:
@@ -89,7 +89,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayList"
+                $ref: "#/components/schemas/Playlist"
         default:
           description: unexpected error
           content:
@@ -117,7 +117,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayList"
+                $ref: "#/components/schemas/Playlist"
         default:
           description: unexpected error
           content:
@@ -194,7 +194,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayList"
+                $ref: "#/components/schemas/Playlist"
         default:
           description: unexpected error
           content:
@@ -223,7 +223,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlayList"
+                $ref: "#/components/schemas/Playlist"
         default:
           description: unexpected error
           content:
