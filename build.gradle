@@ -1,10 +1,24 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:1.12.2'
+    }
+}
+
 plugins {
     id "com.github.johnrengelman.shadow" version "5.0.0"
     id "application"
     id "java"
     id "net.ltgt.apt-eclipse" version "0.21"
+    id "nebula.ospackage" version "4.8.0"
 }
 
+apply plugin: 'nebula.deb'
+
+description "jbert control application"
 version "0.3.0"
 group "ch.jbert"
 
@@ -72,4 +86,32 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add("-parameters")
     options.compilerArgs.add("-deprecation")
     options.compilerArgs.add("-Werror")
+}
+
+task jbertDebPackage(type: Deb) {
+    maintainer "samuelcasa9@gmail.com"
+    user "jbert"
+    permissionGroup "users"
+    preDepends "openjdk-8-jre-headless"
+
+    into '/usr/share/jbert'
+
+    from('build/libs') {
+        into 'lib'
+    }
+    from('build/scriptsShadow') {
+        into 'bin'
+        exclude '*.bat'
+        fileMode 0550
+    }
+    from('systemd') {
+        into 'bin'
+    }
+    from('src/main/resources') {
+        fileType CONFIG | NOREPLACE
+        into 'conf'
+    }
+
+    link('/lib/systemd/system/jbert.service', '/usr/share/jbert/bin/jbert.service')
+    link('/etc/default/jbert', '/usr/share/jbert/bin/environment')
 }
