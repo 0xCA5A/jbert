@@ -26,9 +26,9 @@ echo -e "[i] Create a Ansible hosts file"
 echo -e "[jberts]\n${TARGET_HOST}" > ansible/hosts
 cat ansible/hosts
 
-if [[ -f "$(pwd)/application.conf" ]]; then
+if [[ -f "$(pwd)/application.yml" ]]; then
   echo -e "[i] Symlink application configuration file to ansible directory"
-  ln -fvs "$(pwd)/application.conf" ansible
+  ln -fvs "$(pwd)/application.yml" ansible
 fi
 
 echo -e "[i] Run Ansible playbook"
