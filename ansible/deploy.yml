@@ -41,21 +41,10 @@
         deb: '{{ jbert_tmp_dir }}/{{ local_jbert_deb_package }}'
         state: present
 
-    - name: Change jbert application file permissions
-      file:
-        path: '{{ jbert_application_root }}'
-        owner: '{{ jbert_application_user }}'
-        recurse: yes
-
-    - name: Remove application PID file
-      file:
-        path: /usr/share/jbert/RUNNING_PID
-        state: absent
-
-    - name: Copy application.conf if existing
+    - name: Copy application.yml
       copy:
         src: '{{ jbert_config_file }}'
-        dest: '/usr/share/jbert/conf/application.conf'
+        dest: '/usr/share/jbert/conf/application.yml'
         owner: '{{ jbert_application_user }}'
         follow: true
         force: true
@@ -64,6 +53,7 @@
       systemd:
         name: '{{ jbert_application_name }}'
         enabled: yes
+        daemon_reload: yes
         state: restarted
 
 

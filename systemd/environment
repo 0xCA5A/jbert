@@ -1,0 +1,2 @@
+MICRONAUT_CONFIG_FILES=/usr/share/jbert/conf/application.yml
+JAVA_OPTS="-Dlogback.configurationFile=/usr/share/jbert/conf/logback.xml"

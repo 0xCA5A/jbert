@@ -1,0 +1,24 @@
+[Unit]
+Description=jbert control application
+Requires=network.target
+After=mpd.service
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/share/jbert
+EnvironmentFile=/etc/default/jbert
+ExecStart=/usr/share/jbert/bin/jbert
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=60
+SuccessExitStatus=
+TimeoutStopSec=5
+User=jbert
+ExecStartPre=/bin/mkdir -p /run/jbert
+ExecStartPre=/bin/chown jbert:jbert /run/jbert
+ExecStartPre=/bin/chmod 755 /run/jbert
+PermissionsStartOnly=true
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target
