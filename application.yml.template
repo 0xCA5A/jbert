@@ -1,0 +1,26 @@
+micronaut:
+  application:
+    name: jbert
+
+restapi:
+  playlists:
+    path: "/path/to/your/playlists"
+  tracks:
+    path: "/path/to/your/music"
+
+endpoints:
+  info:
+    enabled: true
+
+application:
+  event-router-name: SimplePlaylistLoad
+
+core:
+  hal:
+    mock:
+      enabled: true
+  rfid:
+    scan-interval: 2s
+  mpd:
+    server: "localhost"
+    port: 6600
