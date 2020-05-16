@@ -2,13 +2,12 @@ plugins {
     id "java"
 }
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
+sourceCompatibility = JavaVersion.toVersion('1.8')
+targetCompatibility = JavaVersion.toVersion('1.8')
 
 repositories {
     mavenCentral()
     maven { url "https://jcenter.bintray.com" }
-
 }
 
 dependencies {
@@ -29,4 +28,3 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add('-deprecation')
     options.compilerArgs.add('-Werror')
 }
-

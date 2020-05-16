@@ -2,9 +2,8 @@ package ch.jbert.services;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import ch.jbert.models.MetadataDto;
+import ch.jbert.models.Metadata;
 import ch.jbert.models.Track;
-import ch.jbert.models.TrackDto;
 import io.micronaut.context.annotation.Value;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -31,7 +30,7 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static ch.jbert.utils.Strings.sanitizeFilename;
 
-public class TrackService extends DataService<TrackDto> {
+public class TrackService extends DataService<Track> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrackService.class);
     private static final String FILE_SUFFIX = ".mp3";
@@ -44,18 +43,18 @@ public class TrackService extends DataService<TrackDto> {
     private String basePath;
 
     @Override
-    public TrackDto create(TrackDto track) throws IOException {
+    public Track create(Track track) throws IOException {
 
-        if (track.getDataOptional().isPresent()) {
+        if (track.getData().isPresent()) {
             if (exists(track)) {
                 LOG.info("Track '{}' already exists, attempting to overwrite it", track);
             }
-            final ByteSource data = ByteSource.wrap(Base64.getDecoder().decode(track.getDataOptional().get()));
+            final ByteSource data = ByteSource.wrap(Base64.getDecoder().decode(track.getData().get()));
             final Optional<Path> file = getFilePath(track);
             if (file.isPresent()) {
                 Files.createDirectories(file.get().getParent());
                 try (final OutputStream out = Files.newOutputStream(file.get())) {
-                    // FIXME: Write ID3 tags based on provided TrackDto.MetadataDto
+                    // FIXME: Write ID3 tags based on provided track metadata
                     out.write(data.read());
                 }
             }
@@ -67,7 +66,7 @@ public class TrackService extends DataService<TrackDto> {
     }
 
     @Override
-    public List<TrackDto> getAll() throws IOException {
+    public List<Track> getAll() throws IOException {
 
         LOG.debug("Reading playlists from folder {}", basePath);
 
@@ -76,23 +75,21 @@ public class TrackService extends DataService<TrackDto> {
             return files
                     .map(file -> {
                         try {
-                            // FIXME: Create MetadataDto by file structure alternatively
+                            // FIXME: Create Metadata by file structure alternatively
                             return readId3Tags(file.toFile());
                         } catch (Exception e) {
                             LOG.warn("Could not read ID3 tags from track '{}', returning empty metadata", file);
-                            return MetadataDto.newBuilder().build();
+                            return Metadata.newBuilder().build();
                         }
                     })
-                    .map(metadata -> new TrackDto(metadata, null))
-                    .map(Track::wrap)
+                    .map(Track::new)
                     .sorted()
-                    .map(Track::unwrap)
                     .collect(Collectors.toList());
         }
     }
 
     @Override
-    public List<TrackDto> findAllByName(String name) throws IOException {
+    public List<Track> findAllByName(String name) throws IOException {
 
         if (name == null || name.isEmpty()) {
             return getAll();
@@ -101,38 +98,38 @@ public class TrackService extends DataService<TrackDto> {
         return getAll().stream()
                 .filter(track -> {
                     final String pattern = "(?i:.*" + name + ".*)";
-                    final Optional<MetadataDto> metadataOptional = track.getMetadataOptional();
-                    final String artist = metadataOptional.flatMap(MetadataDto::getArtistOptional).orElse("");
-                    final String album = metadataOptional.flatMap(MetadataDto::getAlbumOptional).orElse("");
-                    final String title = metadataOptional.flatMap(MetadataDto::getTitleOptional).orElse("");
+                    final Optional<Metadata> metadataOptional = track.getMetadata();
+                    final String artist = metadataOptional.flatMap(Metadata::getArtist).orElse("");
+                    final String album = metadataOptional.flatMap(Metadata::getAlbum).orElse("");
+                    final String title = metadataOptional.flatMap(Metadata::getTitle).orElse("");
                     return Stream.of(artist, album, title).anyMatch(s -> s.matches(pattern));
                 })
                 .collect(Collectors.toList());
     }
 
-    public Optional<TrackDto> findOneByHash(String hash) {
+    public Optional<Track> findOneByHash(String hash) {
         return Optional.empty();
     }
 
     @Override
-    public TrackDto update(TrackDto originalDto, TrackDto updateDto) {
+    public Track update(Track original, Track update) {
         return null;
     }
 
     @Override
-    public TrackDto delete(TrackDto dto) {
+    public Track delete(Track track) {
         return null;
     }
 
-    private boolean exists(TrackDto track) {
+    private boolean exists(Track track) {
         return getFilePath(track).map(Files::exists).orElse(false);
     }
 
-    private boolean notExists(TrackDto track) {
+    private boolean notExists(Track track) {
         return !exists(track);
     }
 
-    private Optional<Path> getFilePath(TrackDto track) {
+    private Optional<Path> getFilePath(Track track) {
         try {
             return Optional.of(Paths.get(basePath, getRelativeFilePath(track)));
         } catch (IOException e) {
@@ -140,20 +137,20 @@ public class TrackService extends DataService<TrackDto> {
         }
     }
 
-    String getRelativeFilePath(TrackDto track) throws IOException {
-        final ByteSource byteSource = track.getDataOptional()
+    String getRelativeFilePath(Track track) throws IOException {
+        final ByteSource byteSource = track.getData()
                 .map(data -> ByteSource.wrap(Base64.getDecoder().decode(data)))
                 .orElse(ByteSource.empty());
-        final MetadataDto fromId3 = readId3Tags(byteSource);
-        return sanitizeFilename(track.getMetadataOptional().flatMap(MetadataDto::getArtistOptional)
-                        .orElseGet(() -> fromId3.getArtistOptional().orElse(UNKNOWN_ARTIST))) + '/' +
-                sanitizeFilename(track.getMetadataOptional().flatMap(MetadataDto::getAlbumOptional)
-                        .orElseGet(() -> fromId3.getAlbumOptional().orElse(UNKNOWN_ALBUM))) + '/' +
-                sanitizeFilename(track.getMetadataOptional().flatMap(MetadataDto::getTitleOptional)
-                        .orElseGet(() -> fromId3.getTitleOptional().orElse(UNKNOWN_TITLE)) + FILE_SUFFIX);
+        final Metadata fromId3 = readId3Tags(byteSource);
+        return sanitizeFilename(track.getMetadata().flatMap(Metadata::getArtist)
+                        .orElseGet(() -> fromId3.getArtist().orElse(UNKNOWN_ARTIST))) + '/' +
+                sanitizeFilename(track.getMetadata().flatMap(Metadata::getAlbum)
+                        .orElseGet(() -> fromId3.getAlbum().orElse(UNKNOWN_ALBUM))) + '/' +
+                sanitizeFilename(track.getMetadata().flatMap(Metadata::getTitle)
+                        .orElseGet(() -> fromId3.getTitle().orElse(UNKNOWN_TITLE)) + FILE_SUFFIX);
     }
 
-    private MetadataDto readId3Tags(ByteSource data) throws IOException {
+    private Metadata readId3Tags(ByteSource data) throws IOException {
 
         final Path tmpDir = Files.createDirectories(Paths.get(basePath, "_tmp"));
         final Path tmpFile = Paths.get(tmpDir.toString(), data.hash(Hashing.sha256()).toString() + FILE_SUFFIX);
@@ -162,34 +159,34 @@ public class TrackService extends DataService<TrackDto> {
         }
 
         try {
-            final MetadataDto fromId3 = readId3Tags(tmpFile.toFile());
+            final Metadata fromId3 = readId3Tags(tmpFile.toFile());
             Files.deleteIfExists(tmpDir);
             return fromId3;
         } catch (Exception e) {
             LOG.info("Could not read ID3 tags from file '{}': {}", tmpFile, e.getMessage());
         }
-        return MetadataDto.newBuilder().build();
+        return Metadata.newBuilder().build();
     }
 
-    MetadataDto readId3Tags(String file) throws Exception {
+    Metadata readId3Tags(String file) throws Exception {
         return readId3Tags(Paths.get(basePath, file).toFile());
     }
 
-    private MetadataDto readId3Tags(File file) throws Exception {
+    private Metadata readId3Tags(File file) throws Exception {
         final AudioFile audioFile = AudioFileIO.read(file);
         final AudioHeader audioHeader = audioFile.getAudioHeader();
         final Tag tag = audioFile.getTag();
-        final MetadataDto.Builder trackBuilder = MetadataDto.newBuilder()
-                .setDuration(audioHeader.getTrackLength())
-                .setArtist(tag.getFirst(FieldKey.ARTIST))
-                .setAlbum(tag.getFirst(FieldKey.ALBUM))
-                .setTitle(tag.getFirst(FieldKey.TITLE))
-                .setComment(tag.getFirst(FieldKey.COMMENT))
-                .setGenre(tag.getFirst(FieldKey.GENRE));
+        final Metadata.Builder trackBuilder = Metadata.newBuilder()
+                .withDuration(audioHeader.getTrackLength())
+                .withArtist(tag.getFirst(FieldKey.ARTIST))
+                .withAlbum(tag.getFirst(FieldKey.ALBUM))
+                .withTitle(tag.getFirst(FieldKey.TITLE))
+                .withComment(tag.getFirst(FieldKey.COMMENT))
+                .withGenre(tag.getFirst(FieldKey.GENRE));
 
         final String year = tag.getFirst(FieldKey.YEAR);
         try {
-            trackBuilder.setYear(Integer.parseInt(year));
+            trackBuilder.withYear(Integer.parseInt(year));
         } catch (Exception e) {
             LOG.info("Could not parse year '{}' as number: {}", year, e.getMessage());
         }

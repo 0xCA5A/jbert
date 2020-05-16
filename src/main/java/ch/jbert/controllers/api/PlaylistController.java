@@ -1,8 +1,9 @@
 package ch.jbert.controllers.api;
 
-import ch.jbert.models.ErrorDto;
-import ch.jbert.models.MetadataDto;
-import ch.jbert.models.PlaylistDto;
+import ch.jbert.models.Error;
+import ch.jbert.models.Metadata;
+import ch.jbert.models.Playlist;
+import ch.jbert.models.Track;
 import ch.jbert.services.PlaylistService;
 import ch.jbert.utils.ThrowingFunction;
 import ch.jbert.utils.ThrowingSupplier;
@@ -10,14 +11,20 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.Put;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.oracle.svm.core.annotate.Delete;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +40,7 @@ import static io.micronaut.http.HttpResponse.ok;
 import static io.micronaut.http.HttpResponse.serverError;
 
 @Controller("/api/playlists")
+@Tag(name = "${api.tags.playlists.name}")
 public class PlaylistController {
 
     private static final Logger LOG = LoggerFactory.getLogger(PlaylistController.class);
@@ -44,18 +52,95 @@ public class PlaylistController {
      * List all available Playlists
      */
     @Get("{?q}")
-    public HttpResponse list(Optional<String> q) {
-        final List<PlaylistDto> playlists = q
+    @ApiResponse(
+        responseCode = "200",
+        content = @Content(
+            array = @ArraySchema(
+                schema = @Schema(implementation = Playlist.class)
+            )
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse list(
+        @Parameter(description = "Filter playlists by name", required = false) Optional<String> q) {
+        try {
+            final List<Playlist> playlists = q
                 .map(ThrowingFunction.of(n -> playlistService.findAllByName(n)))
                 .orElseGet(ThrowingSupplier.of(() -> playlistService.getAll()));
-        return ok(playlists);
+            return ok(playlists);
+        } catch (Exception e) {
+            // TODO: Move into ErrorHandler
+            LOG.info("List Tracks failed", e);
+            return serverError(new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), "List Playlists failed"));
+        }
+    }
+
+    /**
+     * Create a new Playlist
+     */
+    @Post
+    @RequestBody(description = "The playlist data")
+    @ApiResponse(
+        responseCode = "201",
+        description = "New playlist successfully created",
+        content = @Content(
+            schema = @Schema(implementation = Playlist.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad Request",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse create(@Body Playlist playlist) {
+        try {
+            return created(playlistService.create(playlist));
+        } catch (IllegalArgumentException e) {
+            // TODO: Move into ErrorHandler
+            return badRequest(new Error(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
+        } catch (Exception e) {
+            // TODO: Move into ErrorHandler
+            LOG.info("Create Playlist failed: {}", playlist, e);
+            return serverError(
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Create Playlist failed: '%s'", 
+                            playlist)));
+        }
     }
 
     /**
      * Find a Playlist by name
      */
     @Get("/{name}")
-    public HttpResponse find(String name) {
+    @ApiResponse(
+        responseCode = "200",
+        description = "Existing playlist successfully returned",
+        content = @Content(
+            schema = @Schema(implementation = Playlist.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Playlist not found",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse find(@Parameter(description = "The name of the playlist") String name) {
         try {
             return playlistService.findOneByName(name)
                     .map(HttpResponse::ok)
@@ -64,28 +149,8 @@ public class PlaylistController {
             // TODO: Move into ErrorHandler
             LOG.info("Find Playlist failed: '{}'", name, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Find Playlist failed: '%s'", 
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Find Playlist failed: '%s'", 
                             name)));
-        }
-    }
-
-    /**
-     * Create a new Playlist
-     */
-    @Post
-    public HttpResponse create(@Body PlaylistDto playlist) {
-
-        try {
-            return created(playlistService.create(playlist));
-        } catch (IllegalArgumentException e) {
-            // TODO: Move into ErrorHandler
-            return badRequest(new ErrorDto(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
-        } catch (Exception e) {
-            // TODO: Move into ErrorHandler
-            LOG.info("Create Playlist failed: {}", playlist, e);
-            return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Create Playlist failed: '%s'", 
-                            playlist)));
         }
     }
 
@@ -93,9 +158,31 @@ public class PlaylistController {
      * Update an existing Playlist
      */
     @Put("/{name}")
-    public HttpResponse update(String name, @Body PlaylistDto playlist) {
-
-        final Optional<PlaylistDto> original;
+    @RequestBody(description = "The playlist data")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Existing playlist successfully updated",
+        content = @Content(
+            schema = @Schema(implementation = Playlist.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Playlist not found",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse update(
+        @Parameter(description = "The name of the playlist") String name, @Body Playlist playlist) {
+        final Optional<Playlist> original;
         try {
             original = playlistService.findOneByName(name);
             if (!original.isPresent()) {
@@ -105,22 +192,22 @@ public class PlaylistController {
             // TODO: Move into ErrorHandler
             LOG.info("Update Playlist failed: {}", playlist, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Update Playlist failed: '%s'", 
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Update Playlist failed: '%s'", 
                             playlist)));
         }
 
         try {
-            return ok(playlistService.update(original.get(), playlist.getNameOptional().isPresent()
+            return ok(playlistService.update(original.get(), playlist.getName().isPresent()
                     ? playlist
-                    : new PlaylistDto(original.get().getNameOptional().get(), playlist.getTracksOptional().get())));
+                    : new Playlist(original.get().getName().get(), playlist.getTracks())));
         } catch (IllegalArgumentException e) {
             // TODO: Move into ErrorHandler
-            return badRequest(new ErrorDto(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
+            return badRequest(new Error(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
         } catch (Exception e) {
             // TODO: Move into ErrorHandler
             LOG.info("Update Playlist failed: {}", playlist, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Update Playlist failed: '%s'", 
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Update Playlist failed: '%s'", 
                             playlist)));
         }
     }
@@ -129,30 +216,41 @@ public class PlaylistController {
      * Delete a Playlist
      */
     @Delete("/{name}")
-    public HttpResponse delete(String name) {
-
-        final Optional<PlaylistDto> playlist;
+    @ApiResponse(
+        responseCode = "200",
+        description = "Existing playlist successfully deleted",
+        content = @Content(
+            schema = @Schema(implementation = Playlist.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Playlist not found",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse delete(@Parameter(description = "The name of the playlist") String name) {
+        final Optional<Playlist> playlist;
         try {
             playlist = playlistService.findOneByName(name);
             if (!playlist.isPresent()) {
                 return notFound();
             }
+            return ok(playlistService.delete(playlist.get()));
         } catch (Exception e) {
             // TODO: Move into ErrorHandler
             LOG.info("Delete Playlist failed: '{}'", name, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Delete Playlist failed: '%s'",
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Delete Playlist failed: '%s'",
                             name)));
-        }
-
-        try {
-            return ok(playlistService.delete(playlist.get()));
-        } catch (Exception e) {
-            // TODO: Move into ErrorHandler
-            LOG.info("Delete Playlist failed: {}", playlist.get(), e);
-            return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Delete Playlist failed: '%s'",
-                            playlist.get())));
         }
     }
 
@@ -160,15 +258,47 @@ public class PlaylistController {
      * List Tracks of a Playlist
      */
     @Get("/{name}/tracks{?q}")
-    public HttpResponse listTracks(String name, Optional<String> q) {
+    @ApiResponse(
+        responseCode = "200",
+        description = "Tracks of playlist successfully returned",
+        content = @Content(
+            array = @ArraySchema(
+                schema = @Schema(implementation = Track.class)
+            )
+        )
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad Request",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Playlist not found",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse listTracks(
+        @Parameter(description = "The name of the playlist") String name,
+        @Parameter(description = "Filter tracks by name", required = false) Optional<String> q) {
         try {
-            final Optional<PlaylistDto> playlist = playlistService.findOneByName(name);
+            final Optional<Playlist> playlist = playlistService.findOneByName(name);
             return playlist.isPresent()
-                    ? ok(playlist.flatMap(PlaylistDto::getTracksOptional)
+                    ? ok(playlist.map(Playlist::getTracks)
                             .map(tracks -> q.isPresent()
                                     ? tracks.stream()
-                                            .filter(track -> track.getMetadataOptional()
-                                                    .flatMap(MetadataDto::getTitleOptional)
+                                            .filter(track -> track.getMetadata()
+                                                    .flatMap(Metadata::getTitle)
                                                     .map(title -> title.matches("(?i:.*" + q.get() + ".*)"))
                                                     .orElse(false)
                                             ).collect(Collectors.toList())
@@ -177,12 +307,12 @@ public class PlaylistController {
                     : notFound();
         } catch (IllegalArgumentException e) {
             // TODO: Move into ErrorHandler
-            return badRequest(new ErrorDto(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
+            return badRequest(new Error(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
         } catch (Exception e) {
             // TODO: Move into ErrorHandler
             LOG.info("Find Playlist failed: '{}'", name, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Find Playlist failed: '%s'",
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Find Playlist failed: '%s'",
                             name)));
         }
     }
@@ -191,35 +321,95 @@ public class PlaylistController {
      * Get a Track by Index
      */
     @Get("/{name}/tracks/{index}")
-    public HttpResponse getTrackByIndex(String name, int index) {
+    @ApiResponse(
+        responseCode = "200",
+        description = "Track of playlist successfully returned",
+        content = @Content(
+            schema = @Schema(implementation = Track.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad Request",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Track not found",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse getTrackByIndex(
+        @Parameter(description = "The name of the playlist") String name,
+        @Parameter(description = "The position of the track (starting from 0)") int index) {
         try {
-            final Optional<PlaylistDto> playlist = playlistService.findOneByName(name);
-            final boolean hasIndex = playlist.flatMap(PlaylistDto::getTracksOptional)
+            final Optional<Playlist> playlist = playlistService.findOneByName(name);
+            final boolean hasIndex = playlist.map(Playlist::getTracks)
                     .map(tracks -> tracks.size() > index)
                     .orElse(false);
             return playlist.isPresent() && hasIndex
-                    ? ok(playlist.flatMap(PlaylistDto::getTracksOptional).map(tracks -> tracks.get(index)))
+                    ? ok(playlist.map(Playlist::getTracks).map(tracks -> tracks.get(index)))
                     : notFound();
         } catch (IllegalArgumentException e) {
             // TODO: Move into ErrorHandler
-            return badRequest(new ErrorDto(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
+            return badRequest(new Error(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
         } catch (Exception e) {
             // TODO: Move into ErrorHandler
             LOG.info("Find Playlist failed: '{}'", name, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Get Track #%d from Playlist failed: '%s'",
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Get Track #%d from Playlist failed: '%s'",
                             index, name)));
         }
     }
 
     /**
-     * Delete a Track by Index
+     * Remove a Track from a Playlist by Index
      */
     @Delete("/{name}/tracks/{index}")
-    public HttpResponse deleteTrackByIndex(String name, int index) {
+    @ApiResponse(
+        responseCode = "200",
+        description = "Track successfully deleted",
+        content = @Content(
+            schema = @Schema(implementation = Track.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad Request",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "404",
+        description = "Track not found",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    @ApiResponse(
+        responseCode = "500",
+        description = "Server Error",
+        content = @Content(
+            schema = @Schema(implementation = Error.class)
+        )
+    )
+    public HttpResponse deleteTrackByIndex(
+        @Parameter(description = "The name of the playlist") String name,
+        @Parameter(description = "The position of the track (starting from 0)") int index) {
         try {
-            final Optional<PlaylistDto> playlist = playlistService.findOneByName(name);
-            final boolean hasIndex = playlist.flatMap(PlaylistDto::getTracksOptional)
+            final Optional<Playlist> playlist = playlistService.findOneByName(name);
+            final boolean hasIndex = playlist.map(Playlist::getTracks)
                     .map(tracks -> tracks.size() > index)
                     .orElse(false);
             return playlist.isPresent() && hasIndex
@@ -227,12 +417,12 @@ public class PlaylistController {
                     : notFound();
         } catch (IllegalArgumentException e) {
             // TODO: Move into ErrorHandler
-            return badRequest(new ErrorDto(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
+            return badRequest(new Error(HttpStatus.BAD_REQUEST.getCode(), e.getMessage()));
         } catch (Exception e) {
             // TODO: Move into ErrorHandler
             LOG.info("Find Playlist failed: '{}'", name, e);
             return serverError(
-                    new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Delete Track #%d Playlist failed: '%s'",
+                    new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), String.format("Delete Track #%d Playlist failed: '%s'",
                             index, name)));
         }
     }
