@@ -15,6 +15,13 @@ micronaut:
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
+
+restapi:
+  playlists:
+    path: "/var/lib/mpd/playlists"
+  tracks:
+    path: "/var/lib/mpd/music"
+
 core:
   hal:
     mock:

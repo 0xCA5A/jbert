@@ -46,6 +46,7 @@ dependencies {
     implementation "io.micronaut:micronaut-runtime"
     implementation "io.micronaut:micronaut-http-server-netty"
     implementation "io.micronaut:micronaut-http-client"
+    implementation "io.micronaut:micronaut-management"
     implementation "io.swagger.core.v3:swagger-annotations"
     implementation "org:jaudiotagger:2.0.3"
     implementation 'com.google.guava:guava:28.2-jre'
