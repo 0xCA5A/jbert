@@ -4,6 +4,8 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import ch.jbert.models.Metadata;
 import ch.jbert.models.Track;
+import ch.jbert.utils.ThrowingConsumer;
+import ch.jbert.utils.ThrowingPredicate;
 import io.micronaut.context.annotation.Value;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -23,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,7 +46,7 @@ public class TrackService extends DataService<Track> {
     private String basePath;
 
     @Override
-    public Track create(Track track) throws IOException {
+    public Track create(Track track) {
 
         if (track.getData().isPresent()) {
             if (exists(track)) {
@@ -51,16 +54,16 @@ public class TrackService extends DataService<Track> {
             }
             final ByteSource data = ByteSource.wrap(Base64.getDecoder().decode(track.getData().get()));
             final Optional<Path> file = getFilePath(track);
-            if (file.isPresent()) {
-                Files.createDirectories(file.get().getParent());
-                try (final OutputStream out = Files.newOutputStream(file.get())) {
-                    // FIXME: Write ID3 tags based on provided track metadata
+            file.ifPresent(ThrowingConsumer.of(f -> {
+                Files.createDirectories(f.getParent());
+                try (final OutputStream out = Files.newOutputStream(f)) {
                     out.write(data.read());
                 }
-            }
+                track.getMetadata().ifPresent(m -> writeId3Tags(f.toFile(), m));
+            }));
         } else if (notExists(track)) {
-            throw new IllegalArgumentException(String.format("Create track failed due to missing track data: '%s'",
-                    track));
+            throw new IllegalArgumentException(
+                    String.format("Create track failed due to missing track data: '%s'", track));
         }
         return track;
     }
@@ -72,53 +75,75 @@ public class TrackService extends DataService<Track> {
 
         try (Stream<Path> files = Files.walk(Paths.get(basePath), FileVisitOption.FOLLOW_LINKS)
                 .filter(p -> p.toString().endsWith(FILE_SUFFIX))) {
-            return files
-                    .map(file -> {
-                        try {
-                            // FIXME: Create Metadata by file structure alternatively
-                            return readId3Tags(file.toFile());
-                        } catch (Exception e) {
-                            LOG.warn("Could not read ID3 tags from track '{}', returning empty metadata", file);
-                            return Metadata.newBuilder().build();
-                        }
-                    })
-                    .map(Track::new)
-                    .sorted()
-                    .collect(Collectors.toList());
+            return files.map(file -> {
+                try {
+                    return readId3Tags(file.toFile());
+                } catch (Exception e) {
+                    // FIXME: Create Metadata by file structure alternatively
+                    LOG.warn("Could not read ID3 tags from track '{}', returning empty metadata", file);
+                    return Metadata.newBuilder().build();
+                }
+            }).map(Track::new).sorted().collect(Collectors.toList());
         }
     }
 
     @Override
     public List<Track> findAllByName(String name) throws IOException {
+        return (name == null || name.isEmpty())
+                ? getAll()
+                : filterByName(getAll(), name);
+    }
 
-        if (name == null || name.isEmpty()) {
-            return getAll();
-        }
-
-        return getAll().stream()
-                .filter(track -> {
-                    final String pattern = "(?i:.*" + name + ".*)";
-                    final Optional<Metadata> metadataOptional = track.getMetadata();
-                    final String artist = metadataOptional.flatMap(Metadata::getArtist).orElse("");
-                    final String album = metadataOptional.flatMap(Metadata::getAlbum).orElse("");
-                    final String title = metadataOptional.flatMap(Metadata::getTitle).orElse("");
-                    return Stream.of(artist, album, title).anyMatch(s -> s.matches(pattern));
-                })
+    /**
+     * Returns a sublist of tracks which's names match the given string.
+     * 
+     * @param tracks List of tracks to be filtered
+     * @param name   Name query
+     * @return Sublist of the given tracks
+     */
+    public List<Track> filterByName(List<Track> tracks, String name) {
+        return tracks.stream()
+                .filter(track -> track.getMetadata().flatMap(Metadata::getTitle)
+                        .map(title -> title.matches("(?i:.*" + name + ".*)")).orElse(false))
                 .collect(Collectors.toList());
     }
 
-    public Optional<Track> findOneByHash(String hash) {
-        return Optional.empty();
+    public Optional<Track> findOneByHash(String hash) throws IOException {
+        if (!isValidMD5(hash)) {
+            throw new IllegalArgumentException(String.format("Provided hash is not a valid MD5 hash: '%s'", hash));
+        }
+        return getAll().stream()
+                .filter(ThrowingPredicate.of(t -> Objects.equals(t.calculateMD5(), hash)))
+                .findAny();
+    }
+
+    private boolean isValidMD5(String s) {
+        return s.matches("^[a-fA-F0-9]{32}$");
     }
 
     @Override
     public Track update(Track original, Track update) {
-        return null;
+
+        final Metadata metadata;
+        if (original.getMetadata().isPresent() && original.getMetadata().isPresent()) {
+            metadata = Metadata.merge(original.getMetadata().get(), update.getMetadata().get());
+        } else {
+            metadata = update.getMetadata()
+                .orElseGet(() -> original.getMetadata()
+                        .orElseThrow(() -> new IllegalStateException("Original track does not have metadata")));
+        }
+        final String data = update.getData()
+                .orElseGet(() -> original.getData()
+                        .orElseThrow(() -> new IllegalStateException("Original track does not have data")));
+        delete(original);
+        return create(new Track(metadata, data));
     }
 
     @Override
     public Track delete(Track track) {
-        return null;
+        final Optional<Path> filePath = getFilePath(track);
+        filePath.ifPresent(ThrowingConsumer.of(Files::deleteIfExists));
+        return track;
     }
 
     private boolean exists(Track track) {
@@ -192,5 +217,21 @@ public class TrackService extends DataService<Track> {
         }
 
         return trackBuilder.build();
+    }
+
+    private void writeId3Tags(File file, Metadata metadata) {
+        try {
+            final AudioFile audioFile = AudioFileIO.read(file);
+            final Tag tag = audioFile.getTag();
+            metadata.getArtist().ifPresent(ThrowingConsumer.of(v -> tag.setField(FieldKey.ARTIST, v)));
+            metadata.getAlbum().ifPresent(ThrowingConsumer.of(v -> tag.setField(FieldKey.ALBUM, v)));
+            metadata.getTitle().ifPresent(ThrowingConsumer.of(v -> tag.setField(FieldKey.TITLE, v)));
+            metadata.getComment().ifPresent(ThrowingConsumer.of(v -> tag.setField(FieldKey.COMMENT, v)));
+            metadata.getGenre().ifPresent(ThrowingConsumer.of(v -> tag.setField(FieldKey.GENRE, v)));
+            audioFile.setTag(tag);
+            audioFile.commit();
+        } catch (Exception e) {
+            LOG.warn("Could not write ID3 tags from track '{}'", file);
+        }
     }
 }

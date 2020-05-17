@@ -3,6 +3,7 @@ package ch.jbert.services;
 import ch.jbert.models.Metadata;
 import ch.jbert.models.Playlist;
 import ch.jbert.models.Track;
+import ch.jbert.utils.ThrowingConsumer;
 import io.micronaut.context.annotation.Value;
 
 import org.slf4j.Logger;
@@ -108,9 +109,18 @@ public class PlaylistService extends DataService<Playlist> {
         }
     }
 
+    public List<Track> findTracksByTitle(Playlist playlist, String title) {
+        return trackService.filterByName(playlist.getTracks(), title);
+    }
+
     @Override
     public Playlist update(Playlist original, Playlist update) throws IOException {
 
+        if (!update.getName().isPresent()) {
+            String originalName = original.getName()
+                    .orElseThrow(() -> new IllegalStateException("Original playlist does not have a name"));
+            update = new Playlist(originalName, update.getTracks());
+        }
         if (!original.getName().equals(update.getName()) && exists(update)) {
             throw new IllegalArgumentException(String.format("Playlist '%s' already exists",
                     update.getName().orElse(null)));
@@ -122,10 +132,13 @@ public class PlaylistService extends DataService<Playlist> {
     @Override
     public Playlist delete(Playlist playlist) throws IOException {
         final Optional<Path> filePath = getFilePath(playlist);
-        if (filePath.isPresent()) {
-            Files.deleteIfExists(filePath.get());
-        }
+        filePath.ifPresent(ThrowingConsumer.of(Files::deleteIfExists));
         return playlist;
+    }
+
+    public Playlist addTrack(Playlist playlist, Track track) throws IOException {
+        playlist.getTracks().add(track);
+        return addTracks(playlist);
     }
 
     public Playlist deleteTrackByIndex(Playlist playlist, int index) throws IOException {

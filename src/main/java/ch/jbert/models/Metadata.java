@@ -27,6 +27,25 @@ public final class Metadata {
         this.duration = duration;
     }
 
+    public static Metadata merge(Metadata m1, Metadata m2) {
+        final Builder builder = newBuilder();
+        m1.getTitle().ifPresent(builder::withTitle);
+        m1.getArtist().ifPresent(builder::withArtist);
+        m1.getYear().ifPresent(builder::withYear);
+        m1.getGenre().ifPresent(builder::withGenre);
+        m1.getComment().ifPresent(builder::withComment);
+        m1.getDuration().ifPresent(builder::withDuration);
+        m1.getAlbum().ifPresent(builder::withAlbum);
+        m2.getTitle().ifPresent(builder::withTitle);
+        m2.getArtist().ifPresent(builder::withArtist);
+        m2.getYear().ifPresent(builder::withYear);
+        m2.getGenre().ifPresent(builder::withGenre);
+        m2.getComment().ifPresent(builder::withComment);
+        m2.getDuration().ifPresent(builder::withDuration);
+        m2.getAlbum().ifPresent(builder::withAlbum);
+        return builder.build();
+    }
+
     public Optional<String> getTitle() {
         return Optional.ofNullable(this.title);
     }

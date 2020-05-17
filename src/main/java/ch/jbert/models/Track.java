@@ -1,5 +1,7 @@
 package ch.jbert.models;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,14 +25,22 @@ public final class Track implements Comparable<Track> {
     }
 
     public Optional<Metadata> getMetadata() {
-        return Optional.ofNullable(this.metadata);
+        return Optional.ofNullable(metadata);
     }
 
     /**
      * Base64 encoded data
      */
     public Optional<String> getData() {
-        return Optional.ofNullable(this.data);
+        return Optional.ofNullable(data);
+    }
+
+    /**
+     * Calculates the MD5 hash of the Base64 encoded data
+     */
+    public String calculateMD5() throws NoSuchAlgorithmException {
+        final MessageDigest md = MessageDigest.getInstance("MD5");
+        return md.digest(data.getBytes()).toString();
     }
 
     @Override
@@ -85,16 +95,16 @@ public final class Track implements Comparable<Track> {
             return new Track(metadata, data);
         }
 
-        public Builder withMetadata(Metadata value) {
-            this.metadata = value;
+        public Builder withMetadata(Metadata metadata) {
+            this.metadata = metadata;
             return this;
         }
 
         /**
          * Base64 encoded data
          */
-        public Builder withData(String value) {
-            this.data = value;
+        public Builder withData(String data) {
+            this.data = data;
             return this;
         }
     }

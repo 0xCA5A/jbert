@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
         license = @License(name = "${api.license.name}")
     ),
     tags = {
-        @Tag(name = "${api.tags.system.name}", description = "${api.tags.system.description}"),
         @Tag(name = "${api.tags.playlists.name}", description = "${api.tags.playlists.description}"),
         @Tag(name = "${api.tags.tracks.name}", description = "${api.tags.tracks.description}")
     }
