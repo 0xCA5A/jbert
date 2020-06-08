@@ -1,6 +1,10 @@
+---
 micronaut:
   application:
     name: jbert
+
+---
+micronaut:
   router:
     static-resources:
       swagger:
