@@ -4,6 +4,7 @@ import ch.jbert.models.Error;
 import ch.jbert.models.Playlist;
 import ch.jbert.models.Track;
 import ch.jbert.services.PlaylistService;
+import ch.jbert.services.TrackService;
 import ch.jbert.utils.ThrowingFunction;
 import ch.jbert.utils.ThrowingSupplier;
 import io.micronaut.http.HttpResponse;
@@ -118,7 +119,7 @@ public class PlaylistController {
                                    @Parameter(description = "Filter tracks by name", required = false) Optional<String> q) {
         return playlistService.findOneByName(name)
                 .map(playlist -> q
-                        .map(query -> playlistService.findTracksByTitle(playlist, query))
+                        .map(query -> TrackService.filterByName(playlist.getTracks(), query))
                         .orElse(playlist.getTracks()))
                 .map(HttpResponse::ok)
                 .orElse(notFound());
@@ -151,13 +152,11 @@ public class PlaylistController {
     @ApiResponse(responseCode = "500", description = "Server Error", content = @Content(schema = @Schema(implementation = Error.class)))
     public HttpResponse getTrackByIndex(@Parameter(description = "The name of the playlist") String name,
                                         @Parameter(description = "The position of the track (starting from 0)") int index) {
-        final Optional<Playlist> playlist = playlistService.findOneByName(name);
-        final boolean hasIndex = playlist.map(Playlist::getTracks)
-                .map(tracks -> tracks.size() > index)
-                .orElse(false);
-        return playlist.isPresent() && hasIndex
-                ? ok(playlist.map(Playlist::getTracks).map(tracks -> tracks.get(index)))
-                : notFound();
+        return playlistService.findOneByName(name)
+                .map(Playlist::getTracks)
+                .map(tracks -> tracks.get(index))
+                .map(HttpResponse::ok)
+                .orElse(notFound());
     }
 
     /**
@@ -170,12 +169,9 @@ public class PlaylistController {
     @ApiResponse(responseCode = "500", description = "Server Error", content = @Content(schema = @Schema(implementation = Error.class)))
     public HttpResponse deleteTrackByIndex(@Parameter(description = "The name of the playlist") String name,
                                            @Parameter(description = "The position of the track (starting from 0)") int index) throws IOException {
-        final Optional<Playlist> playlist = playlistService.findOneByName(name);
-        final boolean hasIndex = playlist.map(Playlist::getTracks)
-                .map(tracks -> tracks.size() > index)
-                .orElse(false);
-        return playlist.isPresent() && hasIndex
-                ? ok(playlistService.deleteTrackByIndex(playlist.get(), index))
-                : notFound();
+        return playlistService.findOneByName(name)
+                .map(ThrowingFunction.of(playlist -> playlistService.deleteTrackByIndex(playlist, index)))
+                .map(HttpResponse::ok)
+                .orElse(notFound());
     }
 }

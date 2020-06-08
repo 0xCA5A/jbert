@@ -20,7 +20,7 @@ public class UncheckedExceptionHandler implements ExceptionHandler<UncheckedExce
     @Override
     public HttpResponse handle(HttpRequest request, UncheckedException exception) {
         Throwables.propagateIfPossible(exception.getCause(), IllegalArgumentException.class);
-        return HttpResponse.serverError(new Error(HttpStatus.BAD_REQUEST.getCode(), exception.getCause().getMessage()));
+        return HttpResponse.serverError(new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), exception.getCause().getMessage()));
     }
 
 }

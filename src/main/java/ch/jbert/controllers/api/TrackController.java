@@ -56,7 +56,7 @@ public class TrackController {
     @ApiResponse(responseCode = "201", description = "New track successfully created", content = @Content(schema = @Schema(implementation = Track.class)))
     @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(schema = @Schema(implementation = Error.class)))
     @ApiResponse(responseCode = "500", description = "Server Error", content = @Content(schema = @Schema(implementation = Error.class)))
-    public HttpResponse create(@Body Track track) {
+    public HttpResponse create(@Body Track track) throws IOException {
         return created(trackService.create(track));
     }
 
@@ -67,6 +67,7 @@ public class TrackController {
     @ApiResponse(responseCode = "200", description = "Existing track successfully returned", content = @Content(schema = @Schema(implementation = Track.class)))
     @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(schema = @Schema(implementation = Error.class)))
     @ApiResponse(responseCode = "404", description = "Track not found", content = @Content(schema = @Schema(implementation = Error.class)))
+    @ApiResponse(responseCode = "500", description = "Server Error", content = @Content(schema = @Schema(implementation = Error.class)))
     public HttpResponse find(@Parameter(description = "The hash of the track") String hash) throws IOException {
         return trackService.findOneByHash(hash)
                 .map(HttpResponse::ok)
@@ -84,7 +85,7 @@ public class TrackController {
     public HttpResponse update(@Parameter(description = "The hash of the track") String hash, @Body Track track)
     throws IOException {
         return trackService.findOneByHash(hash)
-                .map(original -> trackService.update(original, track))
+                .map(ThrowingFunction.of(original -> trackService.update(original, track)))
                 .map(HttpResponse::ok)
                 .orElse(notFound());
     }
@@ -99,7 +100,7 @@ public class TrackController {
     @ApiResponse(responseCode = "500", description = "Server Error", content = @Content(schema = @Schema(implementation = Error.class)))
     public HttpResponse delete(@Parameter(description = "The hash of the track") String hash) throws IOException {
         return trackService.findOneByHash(hash)
-                .map(trackService::delete)
+                .map(ThrowingFunction.of(trackService::delete))
                 .map(HttpResponse::ok)
                 .orElse(notFound());
     }

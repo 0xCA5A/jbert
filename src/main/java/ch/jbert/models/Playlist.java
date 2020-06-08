@@ -1,5 +1,7 @@
 package ch.jbert.models;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,15 +16,15 @@ public final class Playlist implements Comparable<Playlist> {
 
     public Playlist(String name, List<Track> tracks) {
         this.name = name;
-        this.tracks = tracks;
+        this.tracks = Objects.requireNonNull(tracks);
     }
 
     public Optional<String> getName() {
-        return Optional.ofNullable(this.name);
+        return Optional.ofNullable(name);
     }
 
     public List<Track> getTracks() {
-        return this.tracks;
+        return new ArrayList<>(tracks);
     }
 
     @Override
@@ -48,21 +50,32 @@ public final class Playlist implements Comparable<Playlist> {
         return new Builder();
     }
 
+    public Builder getBuilder() {
+        final Builder builder = new Builder();
+        getName().ifPresent(builder::withName);
+        builder.withTracks(getTracks());
+        return builder;
+    }
+
     public static final class Builder {
         private String name;
         private List<Track> tracks;
+
+        public Builder() {
+            tracks = Collections.emptyList();
+        }
 
         public Playlist build() {
             return new Playlist(name, tracks);
         }
 
-        public Builder withName(String value) {
-            this.name = value;
+        public Builder withName(String name) {
+            this.name = name;
             return this;
         }
 
-        public Builder withTracks(List<Track> value) {
-            this.tracks = value;
+        public Builder withTracks(List<Track> tracks) {
+            this.tracks = Objects.requireNonNull(tracks);
             return this;
         }
     }

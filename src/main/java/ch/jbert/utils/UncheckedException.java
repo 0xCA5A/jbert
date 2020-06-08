@@ -4,6 +4,9 @@ import java.util.concurrent.Callable;
 
 public final class UncheckedException extends RuntimeException {
 
+
+    private static final long serialVersionUID = 8303457839849480553L;
+
     public UncheckedException(Throwable cause) {
         super(cause instanceof UncheckedException ? cause.getCause() : cause);
     }

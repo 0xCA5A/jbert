@@ -1,6 +1,5 @@
 package ch.jbert.services;
 
-import ch.jbert.models.Metadata;
 import ch.jbert.models.Playlist;
 import ch.jbert.models.Track;
 import ch.jbert.utils.ThrowingConsumer;
@@ -17,8 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,6 +38,8 @@ public class PlaylistService implements DataService<Playlist> {
 
     @Override
     public Playlist create(Playlist playlist) throws IOException {
+
+        Objects.requireNonNull(playlist);
 
         if (exists(playlist)) {
             throw new IllegalArgumentException(String.format("Playlist '%s' already exists",
@@ -91,19 +92,7 @@ public class PlaylistService implements DataService<Playlist> {
 
         try (final BufferedReader reader = Files.newBufferedReader(file)) {
             return reader.lines()
-                    .map(line -> {
-                        try {
-                            return trackService.readId3Tags(line);
-                        } catch (Exception e) {
-                            LOG.info("Could not read ID3 tags from file {}: {}", line, e.getMessage());
-                            final List<String> entry = Arrays.asList(line.split("/"));
-                            return Metadata.newBuilder()
-                                    .withArtist(entry.get(0))
-                                    .withAlbum(entry.get(1))
-                                    .withTitle(entry.get(2))
-                                    .build();
-                        }
-                    })
+                    .map(trackService::readId3Tags)
                     .map(metadata -> Track.newBuilder().withMetadata(metadata).build())
                     .collect(Collectors.toList());
         } catch (IOException e) {
@@ -111,12 +100,11 @@ public class PlaylistService implements DataService<Playlist> {
         }
     }
 
-    public List<Track> findTracksByTitle(Playlist playlist, String title) {
-        return trackService.filterByName(playlist.getTracks(), title);
-    }
-
     @Override
     public Playlist update(Playlist original, Playlist update) throws IOException {
+
+        Objects.requireNonNull(original);
+        Objects.requireNonNull(update);
 
         if (!update.getName().isPresent()) {
             String originalName = original.getName()
@@ -126,6 +114,8 @@ public class PlaylistService implements DataService<Playlist> {
         if (!original.getName().equals(update.getName()) && exists(update)) {
             throw new IllegalArgumentException(String.format("Playlist '%s' already exists",
                     update.getName().orElse(null)));
+        } else if (notExists(original)) {
+            throw new IllegalArgumentException(String.format("Playlist '%s' does not exist", update));
         }
         delete(original);
         return addTracks(update);
@@ -133,36 +123,48 @@ public class PlaylistService implements DataService<Playlist> {
 
     @Override
     public Playlist delete(Playlist playlist) throws IOException {
-        final Optional<Path> filePath = getFilePath(playlist);
-        filePath.ifPresent(ThrowingConsumer.of(Files::deleteIfExists));
+
+        Objects.requireNonNull(playlist);
+
+        if (notExists(playlist)) {
+            throw new IllegalArgumentException(String.format("Playlist '%s' does not exist", playlist));
+        }
+
+        getFilePath(playlist).ifPresent(ThrowingConsumer.of(Files::delete));
         return playlist;
     }
 
     public Playlist addTrack(Playlist playlist, Track track) throws IOException {
-        playlist.getTracks().add(track);
-        return addTracks(playlist);
+
+        Objects.requireNonNull(playlist);
+        Objects.requireNonNull(track);
+
+        if (notExists(playlist)) {
+            throw new IllegalArgumentException(String.format("Playlist '%s' does not exist", playlist));
+        }
+
+        final List<Track> tracks = playlist.getTracks();
+        tracks.add(track);
+        return addTracks(playlist.getBuilder().withTracks(tracks).build());
     }
 
     public Playlist deleteTrackByIndex(Playlist playlist, int index) throws IOException {
 
-        final List<Track> copiedTracks = Collections.emptyList();
-        Collections.copy(copiedTracks, playlist.getTracks());
+        Objects.requireNonNull(playlist);
 
-        // Delete track from copied tracks list
-        copiedTracks.remove(index);
+        final String playlistName = playlist.getName().orElseThrow(
+            () -> new IllegalArgumentException(String.format("Could not get name from playlist '%s'", playlist)));
 
-        final Playlist update = playlist.getName().map(n -> new Playlist(n, copiedTracks)).orElseThrow(
-                () -> new IllegalArgumentException(String.format("Could not get name from playlist '%s'", playlist)));
+        final List<Track> tracks = findOneByName(playlistName).map(Playlist::getTracks).orElseThrow(
+            () -> new IllegalArgumentException(String.format("Playlist '%s' does not exist", playlist)));
+        tracks.remove(index);
 
-        return update(playlist, update);
+        return update(playlist, new Playlist(playlistName, tracks));
     }
 
-    private boolean exists(Playlist playlist) {
+    @Override
+    public boolean exists(Playlist playlist) {
         return getFilePath(playlist).map(Files::exists).orElse(false);
-    }
-
-    private boolean notExists(Playlist playlist) {
-        return !exists(playlist);
     }
 
     private Playlist addTracks(Playlist playlist) throws IOException {
@@ -172,7 +174,10 @@ public class PlaylistService implements DataService<Playlist> {
 
         try (final BufferedWriter writer = Files.newBufferedWriter(file)) {
             for (Track track : playlist.getTracks()) {
-                writer.write(trackService.getRelativeFilePath(trackService.create(track)));
+                if (trackService.notExists(track)) {
+                    trackService.create(track);
+                }
+                writer.write(trackService.getRelativeFilePath(track));
                 writer.newLine();
             }
         }

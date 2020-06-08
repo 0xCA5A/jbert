@@ -1,16 +1,24 @@
 package ch.jbert.models;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Comparators;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @JsonDeserialize(builder = Track.Builder.class)
 public final class Track implements Comparable<Track> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Track.class);
 
     private final Metadata metadata;
     private final String data;
@@ -36,11 +44,18 @@ public final class Track implements Comparable<Track> {
     }
 
     /**
-     * Calculates the MD5 hash of the Base64 encoded data
+     * Calculates the SHA256 hash of the Base64 encoded data
      */
-    public String calculateMD5() throws NoSuchAlgorithmException {
-        final MessageDigest md = MessageDigest.getInstance("MD5");
-        return md.digest(data.getBytes()).toString();
+    public String calculateSha256() throws IOException {
+        LOG.trace("Calculating SHA256 hash from track data: {}", data);
+        // final MessageDigest md = MessageDigest.getInstance("MD5");
+        // String hash = (new HexBinaryAdapter()).marshal(md.digest(data.getBytes()));
+        final ByteSource byteSource = getData()
+                .map(data -> ByteSource.wrap(Base64.getDecoder().decode(data)))
+                .orElse(ByteSource.empty());
+        final String hash = byteSource.hash(Hashing.sha256()).toString();
+        LOG.debug("Calculated SHA256 hash: {}", hash);
+        return hash;
     }
 
     @Override
@@ -87,6 +102,13 @@ public final class Track implements Comparable<Track> {
         return new Builder();
     }
 
+    public Builder getBuilder() {
+        final Builder builder = new Builder();
+        getMetadata().ifPresent(builder::withMetadata);
+        getData().ifPresent(builder::withData);
+        return builder;
+    }
+
     public static final class Builder {
         private Metadata metadata;
         private String data;
@@ -105,6 +127,11 @@ public final class Track implements Comparable<Track> {
          */
         public Builder withData(String data) {
             this.data = data;
+            return this;
+        }
+
+        public Builder withData(byte[] data) {
+            this.data = Base64.getEncoder().encodeToString(data);
             return this;
         }
     }

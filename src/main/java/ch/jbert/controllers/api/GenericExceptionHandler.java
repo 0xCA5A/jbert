@@ -17,7 +17,7 @@ public class GenericExceptionHandler implements ExceptionHandler<Exception, Http
 
     @Override
     public HttpResponse handle(HttpRequest request, Exception exception) {
-        return HttpResponse.serverError(new Error(HttpStatus.BAD_REQUEST.getCode(), exception.getMessage()));
+        return HttpResponse.serverError(new Error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), exception.getMessage()));
     }
 
 }

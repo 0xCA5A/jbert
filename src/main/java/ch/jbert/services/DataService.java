@@ -18,4 +18,10 @@ public interface DataService<T> {
 
     T delete(T entity) throws IOException;
 
+    boolean exists(T entity);
+
+    default boolean notExists(T entity) {
+        return !exists(entity);
+    }
+
 }

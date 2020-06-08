@@ -56,6 +56,7 @@ dependencies {
     testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "io.micronaut.test:micronaut-test-junit5"
+    testImplementation "org.mockito:mockito-junit-jupiter:3.3.3"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 
     // Sub-Project dependencies

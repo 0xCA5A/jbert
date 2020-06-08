@@ -63,11 +63,11 @@ public final class Metadata {
     }
 
     public Optional<String> getGenre() {
-        return Optional.ofNullable(this.genre);
+        return Optional.ofNullable(genre);
     }
 
     public Optional<String> getComment() {
-        return Optional.ofNullable(this.comment);
+        return Optional.ofNullable(comment);
     }
 
     public Optional<Integer> getDuration() {
@@ -103,6 +103,18 @@ public final class Metadata {
         return new Builder();
     }
 
+    public Builder getBuilder() {
+        final Builder builder = new Builder();
+        getTitle().ifPresent(builder::withTitle);
+        getArtist().ifPresent(builder::withArtist);
+        getAlbum().ifPresent(builder::withAlbum);
+        getYear().ifPresent(builder::withYear);
+        getGenre().ifPresent(builder::withGenre);
+        getComment().ifPresent(builder::withComment);
+        getDuration().ifPresent(builder::withDuration);
+        return builder;
+    }
+
     public static final class Builder {
 
         private String title;
@@ -117,38 +129,41 @@ public final class Metadata {
             return new Metadata(title, artist, album, year, genre, comment, duration);
         }
 
-        public Builder withTitle(String value) {
-            this.title = value;
+        public Builder withTitle(String title) {
+            this.title = title;
             return this;
         }
 
-        public Builder withArtist(String value) {
-            this.artist = value;
+        public Builder withArtist(String artist) {
+            this.artist = artist;
             return this;
         }
 
-        public Builder withAlbum(String value) {
-            this.album = value;
+        public Builder withAlbum(String album) {
+            this.album = album;
             return this;
         }
 
-        public Builder withYear(Integer value) {
-            this.year = value;
+        public Builder withYear(Integer year) {
+            this.year = year;
             return this;
         }
 
-        public Builder withGenre(String value) {
-            this.genre = value;
+        public Builder withGenre(String genre) {
+            this.genre = genre;
             return this;
         }
 
-        public Builder withComment(String value) {
-            this.comment = value;
+        public Builder withComment(String comment) {
+            this.comment = comment;
             return this;
         }
 
-        public Builder withDuration(Integer value) {
-            this.duration = value;
+        /**
+         * Duration in seconds.
+         */
+        public Builder withDuration(Integer duration) {
+            this.duration = duration;
             return this;
         }
     }

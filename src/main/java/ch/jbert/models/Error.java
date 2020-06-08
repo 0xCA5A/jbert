@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder = Error.Builder.class)
 public final class Error {
+
     private final int code;
     private final String message;
 
@@ -53,13 +54,13 @@ public final class Error {
             return new Error(code, message);
         }
 
-        public Builder withCode(int value) {
-            this.code = value;
+        public Builder withCode(int code) {
+            this.code = code;
             return this;
         }
 
-        public Builder withMessage(String value) {
-            this.message = value;
+        public Builder withMessage(String message) {
+            this.message = message;
             return this;
         }
     }
