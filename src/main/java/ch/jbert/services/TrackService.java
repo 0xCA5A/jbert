@@ -30,10 +30,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.inject.Singleton;
+
 import static java.nio.file.StandardOpenOption.CREATE;
 import static ch.jbert.utils.Strings.sanitizeFilename;
 
-public class TrackService extends DataService<Track> {
+@Singleton
+public class TrackService implements DataService<Track> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrackService.class);
     private static final String FILE_SUFFIX = ".mp3";

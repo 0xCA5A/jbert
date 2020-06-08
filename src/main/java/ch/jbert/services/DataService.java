@@ -3,22 +3,19 @@ package ch.jbert.services;
 import java.io.IOException;
 import java.util.List;
 
-import javax.inject.Singleton;
-
 /**
- * CRUD Service template
+ * CRUD Service
  */
-@Singleton
-public abstract class DataService<T> {
+public interface DataService<T> {
 
-    public abstract T create(T entity) throws IOException;
+    T create(T entity) throws IOException;
 
-    public abstract List<T> getAll() throws IOException;
+    List<T> getAll() throws IOException;
 
-    public abstract List<T> findAllByName(String name) throws IOException;
+    List<T> findAllByName(String name) throws IOException;
 
-    public abstract T update(T original, T update) throws IOException;
+    T update(T original, T update) throws IOException;
 
-    public abstract T delete(T entity) throws IOException;
+    T delete(T entity) throws IOException;
 
 }

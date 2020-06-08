@@ -23,8 +23,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
-public class PlaylistService extends DataService<Playlist> {
+@Singleton
+public class PlaylistService implements DataService<Playlist> {
 
     private static final Logger LOG = LoggerFactory.getLogger(PlaylistService.class);
     private static final String FILE_SUFFIX = ".m3u";
