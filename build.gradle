@@ -25,6 +25,7 @@ group "ch.jbert"
 repositories {
     mavenCentral()
     maven { url "https://jcenter.bintray.com" }
+    maven { url 'https://jitpack.io' }
 }
 
 configurations {
@@ -48,7 +49,7 @@ dependencies {
     implementation "io.micronaut:micronaut-http-client"
     implementation "io.micronaut:micronaut-management"
     implementation "io.swagger.core.v3:swagger-annotations"
-    implementation "org:jaudiotagger:2.0.3"
+    implementation "com.github.goxr3plus:jaudiotagger:2.2.7"
     implementation 'com.google.guava:guava:28.2-jre'
     runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
     testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
