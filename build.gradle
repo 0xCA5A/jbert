@@ -4,16 +4,16 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.netflix.nebula:gradle-ospackage-plugin:1.12.2'
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:8.3.0'
     }
 }
 
 plugins {
-    id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
     id "application"
     id "java"
     id "net.ltgt.apt-eclipse" version "0.21"
-    id "nebula.ospackage" version "4.8.0"
+    id "nebula.ospackage" version "8.3.0"
 }
 
 apply plugin: 'nebula.deb'
@@ -61,7 +61,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 
     // Sub-Project dependencies
-    compile project(':core')
+    implementation project(':core')
 }
 
 test.classpath += configurations.developmentOnly

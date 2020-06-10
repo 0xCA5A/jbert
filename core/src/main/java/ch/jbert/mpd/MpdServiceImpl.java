@@ -49,15 +49,19 @@ public class MpdServiceImpl implements MpdService {
 
     @Override
     public void configure() {
-        if (PLAYER_REPEAT) {
-            logger.info("Enable repeat playing");
-            mpd.getPlayer().setRepeat(true);
-        }
-        if (X_FADE) {
-            mpd.getPlayer().setXFade((int) X_FADE_DURATION.getSeconds());
-        }
+        try {
+            if (PLAYER_REPEAT) {
+                logger.info("Enable repeat playing");
+                mpd.getPlayer().setRepeat(true);
+            }
+            if (X_FADE) {
+                mpd.getPlayer().setXFade((int) X_FADE_DURATION.getSeconds());
+            }
 
-        mpd.getPlayer().setVolume(DEFAULT_VOLUME_IN_PERCENT);
+            mpd.getPlayer().setVolume(DEFAULT_VOLUME_IN_PERCENT);
+        } catch (Exception e) {
+            logger.warn("Failed configuring mpd", e);
+        }
     }
 
     @Override
