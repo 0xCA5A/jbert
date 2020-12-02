@@ -1,0 +1,23 @@
+---
+micronaut:
+  environment: test
+
+---
+restapi:
+  playlists:
+    path: "build/test/playlists"
+  tracks:
+    path: "build/test/music"
+
+core:
+  hal:
+    mock:
+      enabled: true
+
+endpoints:
+  all:
+    port: 8085
+    sensitive: false
+
+application:
+  event-router-name: SimplePlaylistLoad

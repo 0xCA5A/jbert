@@ -2,20 +2,19 @@ plugins {
     id "java"
 }
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
+sourceCompatibility = JavaVersion.toVersion('1.8')
+targetCompatibility = JavaVersion.toVersion('1.8')
 
 repositories {
     mavenCentral()
     maven { url "https://jcenter.bintray.com" }
-
 }
 
 dependencies {
     // https://mvnrepository.com/artifact/com.pi4j/pi4j-core
-    compile group: "com.pi4j", name: "pi4j-core", version: "1.2"
+    implementation group: "com.pi4j", name: "pi4j-core", version: "1.2"
     // https://mvnrepository.com/artifact/org.hihn/javampd
-    compile group: "org.hihn", name: "javampd", version: "6.1.13"
+    implementation group: "org.hihn", name: "javampd", version: "6.1.13"
 }
 
 // use JUnit 5 platform
@@ -29,4 +28,3 @@ tasks.withType(JavaCompile) {
     options.compilerArgs.add('-deprecation')
     options.compilerArgs.add('-Werror')
 }
-

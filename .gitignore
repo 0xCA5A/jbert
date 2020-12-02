@@ -1,6 +1,6 @@
-.idea
+.classpath
 .gradle
-
+.project
+.settings
+bin
 build
-
-application.yml

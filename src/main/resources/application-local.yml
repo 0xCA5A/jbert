@@ -1,0 +1,23 @@
+---
+micronaut:
+  environment: local
+
+---
+restapi:
+  playlists:
+    path: "/tmp/jbert/playlists"
+  tracks:
+    path: "/tmp/jbert/music"
+
+core:
+  hal:
+    mock:
+      enabled: true
+
+endpoints:
+  all:
+    port: 8085
+    sensitive: false
+
+application:
+  event-router-name: SimplePlaylistLoad

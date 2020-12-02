@@ -14,14 +14,16 @@
     </appender>
 
     <logger name="ch.jbert" level="DEBUG"/>
+    <logger name="ch.jbert.controllers" level="DEBUG"/>
+    <logger name="ch.jbert.services" level="DEBUG"/>
     <logger name="ch.jbert.event" level="DEBUG"/>
     <logger name="ch.jbert.gpio" level="DEBUG"/>
     <logger name="ch.jbert.mpd" level="DEBUG"/>
     <logger name="ch.jbert.rfid" level="DEBUG"/>
     <logger name="ch.jbert.util" level="DEBUG"/>
 
-    <logger name="org.bff.javampd" level="ERROR"/>
     <logger name="io.micronaut" level="ERROR"/>
+    <logger name="org.bff.javampd" level="ERROR"/>
 
     <root level="INFO">
         <appender-ref ref="ASYNCSTDOUT"/>
